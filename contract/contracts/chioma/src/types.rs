@@ -1,4 +1,4 @@
-use soroban_sdk::{contracterror, contracttype, Address, Env, String, Vec};
+use soroban_sdk::{contracterror, contracttype, Address, String};
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -80,4 +80,6 @@ pub enum Error {
     AlreadyInitialized = 1,
     NotInitialized = 2,
     NotAuthorized = 3,
+    AgreementNotFound = 4,
+    PaymentNotFound = 11,
 }

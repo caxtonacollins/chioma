@@ -1,7 +1,7 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String};
+use soroban_sdk::{contract, contractimpl, Address, Env, String};
 
-use crate::types::{DataKey, Error};
+use crate::types::{DataKey, Error, PaymentRecord, RentAgreement};
 
 #[contract]
 pub struct ChiomaContract;
@@ -39,6 +39,35 @@ impl ChiomaContract {
             return Err(Error::NotInitialized);
         }
         Ok(())
+    }
+
+    /// Get a specific payment record by payment_id
+    pub fn get_payment(env: Env, payment_id: String) -> Result<PaymentRecord, Error> {
+        let key = DataKey::Payment(payment_id);
+        env.storage()
+            .instance()
+            .get(&key)
+            .ok_or(Error::PaymentNotFound)
+    }
+
+    /// Get total payment count across all agreements
+    pub fn get_payment_count(env: Env) -> u32 {
+        env.storage()
+            .instance()
+            .get(&DataKey::PaymentCount)
+            .unwrap_or(0)
+    }
+
+    /// Get total amount paid for an agreement
+    pub fn get_total_paid(env: Env, agreement_id: String) -> Result<i128, Error> {
+        let key = DataKey::Agreement(agreement_id);
+        let agreement: RentAgreement = env
+            .storage()
+            .instance()
+            .get(&key)
+            .ok_or(Error::AgreementNotFound)?;
+
+        Ok(agreement.total_paid)
     }
 }
 mod test;
