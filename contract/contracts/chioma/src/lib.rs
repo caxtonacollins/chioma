@@ -1,8 +1,9 @@
 #![no_std]
 use soroban_sdk::{contract, contractimpl, contracterror, contractevent, vec, Address, Env, String, Vec};
+use crate::types::{DataKey, Error, PaymentRecord, RentAgreement, AgreementStatus};
+
 
 mod types;
-use types::{AgreementStatus, DataKey, RentAgreement};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -58,7 +59,11 @@ impl Contract {
         )?;
 
         // Check for duplicate agreement_id
-        if env.storage().persistent().has(&DataKey::Agreement(agreement_id.clone())) {
+        if env
+            .storage()
+            .persistent()
+            .has(&DataKey::Agreement(agreement_id.clone()))
+        {
             return Err(Error::AgreementAlreadyExists);
         }
 
@@ -77,12 +82,20 @@ impl Contract {
         };
 
         // Store agreement
-        env.storage().persistent().set(&DataKey::Agreement(agreement_id.clone()), &agreement);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Agreement(agreement_id.clone()), &agreement);
 
         // Update counter
-        let mut count: u32 = env.storage().instance().get(&DataKey::AgreementCount).unwrap_or(0);
+        let mut count: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::AgreementCount)
+            .unwrap_or(0);
         count += 1;
-        env.storage().instance().set(&DataKey::AgreementCount, &count);
+        env.storage()
+            .instance()
+            .set(&DataKey::AgreementCount, &count);
 
         // Emit event
         AgreementCreatedEvent { agreement_id }.publish(&env);
@@ -110,6 +123,35 @@ impl Contract {
         }
 
         Ok(())
+    }
+
+    /// Get a specific payment record by payment_id
+    pub fn get_payment(env: Env, payment_id: String) -> Result<PaymentRecord, Error> {
+        let key = DataKey::Payment(payment_id);
+        env.storage()
+            .instance()
+            .get(&key)
+            .ok_or(Error::PaymentNotFound)
+    }
+
+    /// Get total payment count across all agreements
+    pub fn get_payment_count(env: Env) -> u32 {
+        env.storage()
+            .instance()
+            .get(&DataKey::PaymentCount)
+            .unwrap_or(0)
+    }
+
+    /// Get total amount paid for an agreement
+    pub fn get_total_paid(env: Env, agreement_id: String) -> Result<i128, Error> {
+        let key = DataKey::Agreement(agreement_id);
+        let agreement: RentAgreement = env
+            .storage()
+            .instance()
+            .get(&key)
+            .ok_or(Error::AgreementNotFound)?;
+
+        Ok(agreement.total_paid)
     }
 }
 

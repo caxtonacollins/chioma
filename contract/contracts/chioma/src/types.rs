@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, String};
+use soroban_sdk::{contracterror, contracttype, Address, String};
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,4 +30,17 @@ pub struct RentAgreement {
 pub enum DataKey {
     Agreement(String),
     AgreementCount,
+    PaymentCount,
+    DisputeCount,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    AlreadyInitialized = 1,
+    NotInitialized = 2,
+    NotAuthorized = 3,
+    AgreementNotFound = 4,
+    PaymentNotFound = 11,
 }
