@@ -2,6 +2,7 @@
 use soroban_sdk::{contract, contractimpl, contracterror, contractevent, vec, Address, Env, String, Vec};
 use crate::types::{DataKey, Error, PaymentRecord, RentAgreement, AgreementStatus};
 
+
 mod types;
 
 #[contracterror]
@@ -58,7 +59,11 @@ impl Contract {
         )?;
 
         // Check for duplicate agreement_id
-        if env.storage().persistent().has(&DataKey::Agreement(agreement_id.clone())) {
+        if env
+            .storage()
+            .persistent()
+            .has(&DataKey::Agreement(agreement_id.clone()))
+        {
             return Err(Error::AgreementAlreadyExists);
         }
 
@@ -77,12 +82,20 @@ impl Contract {
         };
 
         // Store agreement
-        env.storage().persistent().set(&DataKey::Agreement(agreement_id.clone()), &agreement);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Agreement(agreement_id.clone()), &agreement);
 
         // Update counter
-        let mut count: u32 = env.storage().instance().get(&DataKey::AgreementCount).unwrap_or(0);
+        let mut count: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::AgreementCount)
+            .unwrap_or(0);
         count += 1;
-        env.storage().instance().set(&DataKey::AgreementCount, &count);
+        env.storage()
+            .instance()
+            .set(&DataKey::AgreementCount, &count);
 
         // Emit event
         AgreementCreatedEvent { agreement_id }.publish(&env);
