@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, String};
+use soroban_sdk::{contracttype, Address, Bytes, String};
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -37,9 +37,20 @@ pub struct PaymentRecord {
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct UserProfile {
+    pub account_id: Address,
+    pub account_type: u8,
+    pub data_hash: Bytes,
+    pub last_updated: u64,
+    pub is_verified: bool,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DataKey {
     Agreement(String),
     AgreementCount,
     Payment(String),
     PaymentCount,
+    UserProfile(Address),
 }

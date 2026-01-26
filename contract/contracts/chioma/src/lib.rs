@@ -1,11 +1,14 @@
 #![no_std]
 #![allow(clippy::too_many_arguments)]
 use soroban_sdk::{
-    contract, contracterror, contractevent, contractimpl, vec, Address, Env, String, Vec,
+    contract, contracterror, contractevent, contractimpl, vec, Address, Bytes, Env, String, Vec,
 };
 
 mod types;
-use types::{AgreementStatus, DataKey, PaymentRecord, RentAgreement};
+use types::{AgreementStatus, DataKey, PaymentRecord, RentAgreement, UserProfile};
+
+const MAX_DATA_HASH_LEN: u32 = 128;
+const MIN_UPDATE_INTERVAL: u64 = 60;
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -16,6 +19,10 @@ pub enum Error {
     InvalidDate = 6,
     InvalidCommissionRate = 7,
     PaymentNotFound = 11,
+    InvalidAccountType = 12,
+    InvalidDataHash = 13,
+    ProfileNotFound = 14,
+    RateLimited = 15,
 }
 
 #[contractevent]
@@ -187,6 +194,74 @@ impl Contract {
         Ok(total)
     }
 
+    pub fn update_profile(
+        env: Env,
+        account: Address,
+        account_type: u8,
+        data_hash: Bytes,
+    ) -> Result<(), Error> {
+        account.require_auth();
+
+        Self::validate_account_type(&account_type)?;
+        Self::validate_data_hash(&data_hash)?;
+
+        let now = env.ledger().timestamp();
+        if let Some(existing) = env
+            .storage()
+            .persistent()
+            .get::<DataKey, UserProfile>(&DataKey::UserProfile(account.clone()))
+        {
+            if now.saturating_sub(existing.last_updated) < MIN_UPDATE_INTERVAL {
+                return Err(Error::RateLimited);
+            }
+        }
+
+        let is_verified = env
+            .storage()
+            .persistent()
+            .get::<DataKey, UserProfile>(&DataKey::UserProfile(account.clone()))
+            .map(|profile| profile.is_verified)
+            .unwrap_or(false);
+
+        let profile = UserProfile {
+            account_id: account.clone(),
+            account_type,
+            data_hash,
+            last_updated: now,
+            is_verified,
+        };
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::UserProfile(account), &profile);
+
+        Ok(())
+    }
+
+    pub fn get_profile(env: Env, account: Address) -> Result<UserProfile, Error> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::UserProfile(account))
+            .ok_or(Error::ProfileNotFound)
+    }
+
+    pub fn delete_profile(env: Env, account: Address) -> Result<(), Error> {
+        account.require_auth();
+
+        if !env
+            .storage()
+            .persistent()
+            .has(&DataKey::UserProfile(account.clone()))
+        {
+            return Err(Error::ProfileNotFound);
+        }
+
+        env.storage()
+            .persistent()
+            .remove(&DataKey::UserProfile(account));
+        Ok(())
+    }
+
     fn u32_to_string(env: &Env, num: u32) -> String {
         match num {
             0 => String::from_str(env, "0"),
@@ -202,6 +277,20 @@ impl Contract {
             10 => String::from_str(env, "10"),
             _ => String::from_str(env, "unknown"),
         }
+    }
+
+    fn validate_account_type(account_type: &u8) -> Result<(), Error> {
+        if !(1..=3).contains(account_type) {
+            return Err(Error::InvalidAccountType);
+        }
+        Ok(())
+    }
+
+    fn validate_data_hash(data_hash: &Bytes) -> Result<(), Error> {
+        if data_hash.is_empty() || data_hash.len() > MAX_DATA_HASH_LEN {
+            return Err(Error::InvalidDataHash);
+        }
+        Ok(())
     }
 }
 

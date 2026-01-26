@@ -3,7 +3,7 @@
 use super::*;
 use soroban_sdk::{
     testutils::{Address as _, Events},
-    vec, Address, Env, String,
+    vec, Address, Bytes, Env, String,
 };
 
 #[test]
@@ -26,6 +26,86 @@ fn test() {
 fn create_contract(env: &Env) -> ContractClient<'_> {
     let contract_id = env.register(Contract, ());
     ContractClient::new(env, &contract_id)
+}
+
+#[test]
+fn test_profile_crud_success() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let account = Address::generate(&env);
+    let data_hash = Bytes::from_slice(&env, b"bafybeigdyrzt6profilehash");
+
+    client.update_profile(&account, &1u8, &data_hash);
+
+    let profile = client.get_profile(&account);
+    assert_eq!(profile.account_id, account);
+    assert_eq!(profile.account_type, 1u8);
+    assert_eq!(profile.data_hash, data_hash);
+    assert_eq!(profile.is_verified, false);
+
+    client.delete_profile(&account);
+
+    let exists: bool = env.as_contract(&client.address, || {
+        env.storage()
+            .persistent()
+            .has(&types::DataKey::UserProfile(account.clone()))
+    });
+    assert!(!exists);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #12)")]
+fn test_profile_invalid_account_type() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let account = Address::generate(&env);
+    let data_hash = Bytes::from_slice(&env, b"bafybeigdyrzt6profilehash");
+
+    client.update_profile(&account, &4u8, &data_hash);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #13)")]
+fn test_profile_invalid_data_hash() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let account = Address::generate(&env);
+    let long_hash = vec![0u8; 129];
+    let data_hash = Bytes::from_slice(&env, long_hash.as_slice());
+
+    client.update_profile(&account, &2u8, &data_hash);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #15)")]
+fn test_profile_rate_limited() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let account = Address::generate(&env);
+    let data_hash = Bytes::from_slice(&env, b"bafybeigdyrzt6profilehash");
+
+    client.update_profile(&account, &1u8, &data_hash);
+    client.update_profile(&account, &1u8, &data_hash);
+}
+
+#[test]
+#[should_panic]
+fn test_profile_requires_auth() {
+    let env = Env::default();
+
+    let client = create_contract(&env);
+    let account = Address::generate(&env);
+    let data_hash = Bytes::from_slice(&env, b"bafybeigdyrzt6profilehash");
+
+    client.update_profile(&account, &1u8, &data_hash);
 }
 
 #[test]
