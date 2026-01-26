@@ -27,7 +27,19 @@ pub struct RentAgreement {
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PaymentRecord {
+    pub payment_id: String,
+    pub agreement_id: String,
+    pub amount: i128,
+    pub payment_date: u64,
+    pub payer: Address,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DataKey {
     Agreement(String),
     AgreementCount,
+    Payment(String),
+    PaymentCount,
 }

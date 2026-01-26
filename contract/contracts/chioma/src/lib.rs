@@ -1,8 +1,11 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracterror, contractevent, vec, Address, Env, String, Vec};
+#![allow(clippy::too_many_arguments)]
+use soroban_sdk::{
+    contract, contracterror, contractevent, contractimpl, vec, Address, Env, String, Vec,
+};
 
 mod types;
-use types::{AgreementStatus, DataKey, RentAgreement};
+use types::{AgreementStatus, DataKey, PaymentRecord, RentAgreement};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -12,6 +15,7 @@ pub enum Error {
     InvalidAmount = 5,
     InvalidDate = 6,
     InvalidCommissionRate = 7,
+    PaymentNotFound = 11,
 }
 
 #[contractevent]
@@ -23,6 +27,7 @@ pub struct AgreementCreatedEvent {
 #[contract]
 pub struct Contract;
 
+#[allow(clippy::too_many_arguments)]
 #[contractimpl]
 impl Contract {
     pub fn hello(env: Env, to: String) -> Vec<String> {
@@ -33,6 +38,7 @@ impl Contract {
     ///
     /// Authorization:
     /// - Tenant MUST authorize creation (prevents landlord-only spoofing)
+    #[allow(clippy::too_many_arguments)]
     pub fn create_agreement(
         env: Env,
         agreement_id: String,
@@ -58,7 +64,11 @@ impl Contract {
         )?;
 
         // Check for duplicate agreement_id
-        if env.storage().persistent().has(&DataKey::Agreement(agreement_id.clone())) {
+        if env
+            .storage()
+            .persistent()
+            .has(&DataKey::Agreement(agreement_id.clone()))
+        {
             return Err(Error::AgreementAlreadyExists);
         }
 
@@ -77,12 +87,20 @@ impl Contract {
         };
 
         // Store agreement
-        env.storage().persistent().set(&DataKey::Agreement(agreement_id.clone()), &agreement);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Agreement(agreement_id.clone()), &agreement);
 
         // Update counter
-        let mut count: u32 = env.storage().instance().get(&DataKey::AgreementCount).unwrap_or(0);
+        let mut count: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::AgreementCount)
+            .unwrap_or(0);
         count += 1;
-        env.storage().instance().set(&DataKey::AgreementCount, &count);
+        env.storage()
+            .instance()
+            .set(&DataKey::AgreementCount, &count);
 
         // Emit event
         AgreementCreatedEvent { agreement_id }.publish(&env);
@@ -128,6 +146,62 @@ impl Contract {
         }
 
         Ok(())
+    }
+
+    pub fn get_payment(env: Env, payment_id: String) -> Result<PaymentRecord, Error> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::Payment(payment_id))
+            .ok_or(Error::PaymentNotFound)
+    }
+
+    pub fn get_payment_count(env: Env) -> u32 {
+        env.storage()
+            .instance()
+            .get(&DataKey::PaymentCount)
+            .unwrap_or(0)
+    }
+
+    pub fn get_total_paid(env: Env, agreement_id: String) -> Result<i128, Error> {
+        let payment_count: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::PaymentCount)
+            .unwrap_or(0);
+
+        let mut total: i128 = 0;
+
+        for i in 0..payment_count {
+            let payment_id = Self::u32_to_string(&env, i);
+            if let Some(payment) = env
+                .storage()
+                .persistent()
+                .get::<DataKey, PaymentRecord>(&DataKey::Payment(payment_id))
+            {
+                if payment.agreement_id == agreement_id {
+                    total += payment.amount;
+                }
+            }
+        }
+
+        Ok(total)
+    }
+
+    fn u32_to_string(env: &Env, num: u32) -> String {
+        match num {
+            0 => String::from_str(env, "0"),
+            1 => String::from_str(env, "1"),
+            2 => String::from_str(env, "2"),
+            3 => String::from_str(env, "3"),
+            4 => String::from_str(env, "4"),
+            5 => String::from_str(env, "5"),
+            6 => String::from_str(env, "6"),
+            7 => String::from_str(env, "7"),
+            8 => String::from_str(env, "8"),
+            9 => String::from_str(env, "9"),
+            10 => String::from_str(env, "10"),
+            _ => String::from_str(env, "unknown"),
+        }
     }
 }
 

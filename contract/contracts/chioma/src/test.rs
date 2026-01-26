@@ -1,7 +1,10 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{testutils::{Address as _, Events}, vec, Address, Env, String};
+use soroban_sdk::{
+    testutils::{Address as _, Events},
+    vec, Address, Env, String,
+};
 
 #[test]
 fn test() {
@@ -31,13 +34,13 @@ fn test_create_agreement_success() {
     env.mock_all_auths();
 
     let client = create_contract(&env);
-    
+
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
     let agent = Some(Address::generate(&env));
-    
+
     let agreement_id = String::from_str(&env, "AGREEMENT_001");
-    
+
     client.create_agreement(
         &agreement_id,
         &landlord,
@@ -49,7 +52,7 @@ fn test_create_agreement_success() {
         &200,  // end_date
         &10,   // agent_commission_rate
     );
-    
+
     // Check events
     let events = env.events().all();
     assert_eq!(events.len(), 1);
@@ -63,18 +66,24 @@ fn test_create_agreement_success() {
 
     // Verify persistence
     let stored_agreement: types::RentAgreement = env.as_contract(&client.address, || {
-        env.storage().persistent().get(&types::DataKey::Agreement(agreement_id.clone())).unwrap()
+        env.storage()
+            .persistent()
+            .get(&types::DataKey::Agreement(agreement_id.clone()))
+            .unwrap()
     });
-    
+
     assert_eq!(stored_agreement.agreement_id, agreement_id);
     assert_eq!(stored_agreement.monthly_rent, 1000);
     assert_eq!(stored_agreement.status, types::AgreementStatus::Draft);
     assert_eq!(stored_agreement.landlord, landlord);
     assert_eq!(stored_agreement.tenant, tenant);
-    
+
     // Verify counter
     let count: u32 = env.as_contract(&client.address, || {
-        env.storage().instance().get(&types::DataKey::AgreementCount).unwrap()
+        env.storage()
+            .instance()
+            .get(&types::DataKey::AgreementCount)
+            .unwrap()
     });
     assert_eq!(count, 1);
 }
@@ -85,13 +94,13 @@ fn test_create_agreement_with_agent() {
     env.mock_all_auths();
 
     let client = create_contract(&env);
-    
+
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
     let agent = Address::generate(&env);
-    
+
     let agreement_id = String::from_str(&env, "AGREEMENT_WITH_AGENT");
-    
+
     client.create_agreement(
         &agreement_id,
         &landlord,
@@ -103,8 +112,8 @@ fn test_create_agreement_with_agent() {
         &2000,
         &5,
     );
-    
-    // Verify persistence (not directly accessible via client unless we add a getter, 
+
+    // Verify persistence (not directly accessible via client unless we add a getter,
     // but successful execution implies no panic)
 }
 
@@ -114,12 +123,12 @@ fn test_create_agreement_without_agent() {
     env.mock_all_auths();
 
     let client = create_contract(&env);
-    
+
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    
+
     let agreement_id = String::from_str(&env, "AGREEMENT_NO_AGENT");
-    
+
     client.create_agreement(
         &agreement_id,
         &landlord,
@@ -140,12 +149,12 @@ fn test_negative_rent_rejected() {
     env.mock_all_auths();
 
     let client = create_contract(&env);
-    
+
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    
+
     let agreement_id = String::from_str(&env, "BAD_RENT");
-    
+
     client.create_agreement(
         &agreement_id,
         &landlord,
@@ -166,12 +175,12 @@ fn test_invalid_dates_rejected() {
     env.mock_all_auths();
 
     let client = create_contract(&env);
-    
+
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    
+
     let agreement_id = String::from_str(&env, "BAD_DATES");
-    
+
     client.create_agreement(
         &agreement_id,
         &landlord,
@@ -192,12 +201,12 @@ fn test_duplicate_agreement_id() {
     env.mock_all_auths();
 
     let client = create_contract(&env);
-    
+
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    
+
     let agreement_id = String::from_str(&env, "DUPLICATE_ID");
-    
+
     client.create_agreement(
         &agreement_id,
         &landlord,
@@ -209,7 +218,7 @@ fn test_duplicate_agreement_id() {
         &200,
         &0,
     );
-    
+
     // Try to create again with same ID
     client.create_agreement(
         &agreement_id,
@@ -231,12 +240,12 @@ fn test_invalid_commission_rate() {
     env.mock_all_auths();
 
     let client = create_contract(&env);
-    
+
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    
+
     let agreement_id = String::from_str(&env, "BAD_COMMISSION");
-    
+
     client.create_agreement(
         &agreement_id,
         &landlord,
@@ -248,4 +257,106 @@ fn test_invalid_commission_rate() {
         &200,
         &101, // > 100
     );
+}
+
+fn create_test_payment(
+    env: &Env,
+    client: &ContractClient,
+    payment_id: &str,
+    agreement_id: &str,
+    amount: i128,
+) {
+    let payer = Address::generate(env);
+    let payment = types::PaymentRecord {
+        payment_id: String::from_str(env, payment_id),
+        agreement_id: String::from_str(env, agreement_id),
+        amount,
+        payment_date: 1000,
+        payer,
+    };
+
+    env.as_contract(&client.address, || {
+        env.storage().persistent().set(
+            &types::DataKey::Payment(String::from_str(env, payment_id)),
+            &payment,
+        );
+
+        let mut count: u32 = env
+            .storage()
+            .instance()
+            .get(&types::DataKey::PaymentCount)
+            .unwrap_or(0);
+        count += 1;
+        env.storage()
+            .instance()
+            .set(&types::DataKey::PaymentCount, &count);
+    });
+}
+
+#[test]
+fn test_get_payment() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    create_test_payment(&env, &client, "PAY_001", "AGR_001", 1000);
+
+    let payment = client.get_payment(&String::from_str(&env, "PAY_001"));
+
+    assert_eq!(payment.payment_id, String::from_str(&env, "PAY_001"));
+    assert_eq!(payment.agreement_id, String::from_str(&env, "AGR_001"));
+    assert_eq!(payment.amount, 1000);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #11)")]
+fn test_get_nonexistent_payment() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    client.get_payment(&String::from_str(&env, "NONEXISTENT"));
+}
+
+#[test]
+fn test_get_payment_count() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    assert_eq!(client.get_payment_count(), 0);
+
+    create_test_payment(&env, &client, "PAY_001", "AGR_001", 500);
+    assert_eq!(client.get_payment_count(), 1);
+
+    create_test_payment(&env, &client, "PAY_002", "AGR_002", 750);
+    assert_eq!(client.get_payment_count(), 2);
+
+    create_test_payment(&env, &client, "PAY_003", "AGR_001", 300);
+    assert_eq!(client.get_payment_count(), 3);
+}
+
+#[test]
+fn test_get_total_paid() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    create_test_payment(&env, &client, "0", "AGR_001", 1000);
+    create_test_payment(&env, &client, "1", "AGR_001", 1500);
+    create_test_payment(&env, &client, "2", "AGR_002", 2000);
+    create_test_payment(&env, &client, "3", "AGR_001", 500);
+
+    let total_agr_001 = client.get_total_paid(&String::from_str(&env, "AGR_001"));
+    assert_eq!(total_agr_001, 3000);
+
+    let total_agr_002 = client.get_total_paid(&String::from_str(&env, "AGR_002"));
+    assert_eq!(total_agr_002, 2000);
+
+    let total_nonexistent = client.get_total_paid(&String::from_str(&env, "NONEXISTENT"));
+    assert_eq!(total_nonexistent, 0);
 }
