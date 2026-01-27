@@ -251,13 +251,31 @@ export class AuthService {
       throw new BadRequestException('Reset token has expired');
     }
 
+    // Check password history to prevent reuse
+    if (await this.isPasswordInHistory(user, newPassword)) {
+      throw new BadRequestException(
+        'Cannot reuse any of your last 5 passwords',
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    // Update password history
+    const passwordHistory = await this.updatePasswordHistory(
+      user.passwordHistory,
+      user.password,
+    );
 
     user.password = hashedPassword;
     user.resetToken = null;
     user.resetTokenExpires = null;
     user.failedLoginAttempts = 0;
     user.accountLockedUntil = null;
+    user.passwordChangedAt = new Date();
+    user.passwordHistory = passwordHistory;
+    // Invalidate all existing sessions (session fixation prevention)
+    user.tokensValidAfter = new Date();
+    user.refreshToken = null;
 
     await this.userRepository.save(user);
     this.logger.log(`Password reset successful for user: ${user.id}`);
@@ -266,6 +284,112 @@ export class AuthService {
       message:
         'Password has been reset successfully. Please log in with your new password',
     };
+  }
+
+  /**
+   * Change password for authenticated user
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<MessageResponseDto> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+    if (!isCurrentPasswordValid) {
+      this.logger.warn(`Invalid current password for user: ${userId}`);
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Check password history
+    if (await this.isPasswordInHistory(user, newPassword)) {
+      throw new BadRequestException(
+        'Cannot reuse any of your last 5 passwords',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    const passwordHistory = await this.updatePasswordHistory(
+      user.passwordHistory,
+      user.password,
+    );
+
+    // Invalidate all sessions on password change
+    await this.userRepository.update(userId, {
+      password: hashedPassword,
+      passwordChangedAt: new Date(),
+      passwordHistory,
+      tokensValidAfter: new Date(),
+      refreshToken: null,
+    });
+
+    this.logger.log(`Password changed for user: ${userId}`);
+
+    return {
+      message: 'Password changed successfully. Please log in again.',
+    };
+  }
+
+  /**
+   * Invalidate all sessions for a user
+   */
+  async invalidateAllSessions(userId: string): Promise<void> {
+    await this.userRepository.update(userId, {
+      tokensValidAfter: new Date(),
+      refreshToken: null,
+    });
+    this.logger.log(`All sessions invalidated for user: ${userId}`);
+  }
+
+  /**
+   * Check if password is in history
+   */
+  private async isPasswordInHistory(
+    user: User,
+    newPassword: string,
+  ): Promise<boolean> {
+    if (!user.passwordHistory) return false;
+
+    const history = user.passwordHistory.split(',');
+    for (const hashedPwd of history) {
+      if (await bcrypt.compare(newPassword, hashedPwd)) {
+        return true;
+      }
+    }
+
+    // Also check current password
+    if (await bcrypt.compare(newPassword, user.password)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Update password history (keep last 5)
+   */
+  private async updatePasswordHistory(
+    currentHistory: string | null,
+    currentPassword: string,
+  ): Promise<string> {
+    const history = currentHistory ? currentHistory.split(',') : [];
+    history.unshift(currentPassword);
+
+    // Keep only last 5 passwords
+    if (history.length > 5) {
+      history.pop();
+    }
+
+    return history.join(',');
   }
 
   async verifyEmail(token: string): Promise<MessageResponseDto> {
@@ -298,7 +422,7 @@ export class AuthService {
     };
   }
 
-  async validateUserById(userId: string) {
+  async validateUserById(userId: string, tokenIssuedAt?: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -309,6 +433,16 @@ export class AuthService {
 
     if (!user.isActive) {
       throw new UnauthorizedException('Account has been deactivated');
+    }
+
+    // Check if token was issued before session invalidation
+    if (user.tokensValidAfter && tokenIssuedAt) {
+      const tokenIssuedDate = new Date(tokenIssuedAt * 1000);
+      if (tokenIssuedDate < user.tokensValidAfter) {
+        throw new UnauthorizedException(
+          'Session expired. Please log in again.',
+        );
+      }
     }
 
     return this.sanitizeUser(user);

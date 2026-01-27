@@ -72,6 +72,30 @@ export class User {
   @Column({ name: 'refresh_token', nullable: true })
   refreshToken: string | null;
 
+  // MFA fields
+  @Column({ name: 'mfa_enabled', default: false })
+  mfaEnabled: boolean;
+
+  @Exclude()
+  @Column({ name: 'mfa_secret', nullable: true })
+  mfaSecret: string | null;
+
+  @Exclude()
+  @Column({ name: 'mfa_backup_codes', nullable: true, type: 'text' })
+  mfaBackupCodes: string | null;
+
+  // Password history for preventing reuse
+  @Exclude()
+  @Column({ name: 'password_history', nullable: true, type: 'text' })
+  passwordHistory: string | null;
+
+  @Column({ name: 'password_changed_at', nullable: true })
+  passwordChangedAt: Date | null;
+
+  // Session security - invalidate all sessions after this timestamp
+  @Column({ name: 'tokens_valid_after', nullable: true })
+  tokensValidAfter: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

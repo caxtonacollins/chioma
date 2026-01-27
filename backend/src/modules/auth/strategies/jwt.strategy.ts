@@ -9,6 +9,7 @@ export interface JwtPayload {
   email: string;
   role: string;
   type: 'access' | 'refresh';
+  iat?: number; // Issued at timestamp
 }
 
 @Injectable()
@@ -31,7 +32,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Invalid token type');
     }
 
-    const user = await this.authService.validateUserById(payload.sub);
+    // Validate user and check token validity
+    const user = await this.authService.validateUserById(
+      payload.sub,
+      payload.iat,
+    );
 
     if (!user) {
       throw new UnauthorizedException('User not found or inactive');
