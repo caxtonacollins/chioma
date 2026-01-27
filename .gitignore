@@ -1,6 +1,7 @@
 # Development scripts (not for version control)
 commit.sh
 pr_description.md
+test-local.sh
 
 # IDE
 .idea/
