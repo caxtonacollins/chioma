@@ -2,11 +2,58 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import { HttpLog } from '../interfaces/http-log.interface';
+import {
+  SENSITIVE_HEADERS,
+  SENSITIVE_LOG_FIELDS,
+} from '../constants/security.constants';
 
-const SENSITIVE_HEADERS = ['authorization', 'cookie'];
-const SENSITIVE_BODY_FIELDS = ['password', 'token', 'secret'];
 const DEFAULT_SLOW_THRESHOLD =
   Number(process.env.LOG_SLOW_REQUEST_THRESHOLD) || 500;
+
+/**
+ * Mask a value showing only first and last N characters
+ */
+function maskValue(value: string, showChars = 4): string {
+  if (value.length <= showChars * 2) {
+    return '[REDACTED]';
+  }
+  return `${value.substring(0, showChars)}...${value.substring(value.length - showChars)}`;
+}
+
+/**
+ * Mask an email address showing only domain
+ */
+function maskEmail(email: string): string {
+  const atIndex = email.indexOf('@');
+  if (atIndex === -1) return '[REDACTED]';
+  return `***@${email.substring(atIndex + 1)}`;
+}
+
+/**
+ * Mask a wallet address (Stellar G... addresses)
+ */
+function maskWalletAddress(address: string): string {
+  if (address.length < 10) return '[REDACTED]';
+  return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+}
+
+/**
+ * Mask IP address in production
+ */
+function maskIp(ip: string | undefined): string {
+  if (!ip) return 'unknown';
+  if (process.env.NODE_ENV !== 'production') return ip;
+
+  // Mask last octet for IPv4
+  if (ip.includes('.')) {
+    const parts = ip.split('.');
+    parts[parts.length - 1] = 'xxx';
+    return parts.join('.');
+  }
+
+  // Mask for IPv6
+  return ip.substring(0, ip.length / 2) + '...';
+}
 
 function sanitizeHeaders(headers: Record<string, any>) {
   const sanitized = { ...headers };
@@ -18,16 +65,41 @@ function sanitizeHeaders(headers: Record<string, any>) {
   return sanitized;
 }
 
-export function sanitizeBody(body: any) {
+export function sanitizeBody(body: any, depth = 0): any {
+  // Prevent infinite recursion
+  if (depth > 10) return '[MAX_DEPTH_EXCEEDED]';
   if (!body || typeof body !== 'object') return body;
 
   const clone = Array.isArray(body) ? [...body] : { ...body };
 
   for (const key of Object.keys(clone)) {
-    if (SENSITIVE_BODY_FIELDS.includes(key.toLowerCase())) {
+    const lowerKey = key.toLowerCase();
+
+    // Check if field is sensitive
+    if (SENSITIVE_LOG_FIELDS.some((field) => lowerKey.includes(field))) {
       clone[key] = '[REDACTED]';
-    } else if (typeof clone[key] === 'object') {
-      clone[key] = sanitizeBody(clone[key]);
+    }
+    // Mask email fields
+    else if (lowerKey.includes('email') && typeof clone[key] === 'string') {
+      clone[key] = maskEmail(clone[key]);
+    }
+    // Mask wallet/address fields (Stellar addresses start with G)
+    else if (
+      (lowerKey.includes('wallet') ||
+        lowerKey.includes('address') ||
+        lowerKey.includes('publickey')) &&
+      typeof clone[key] === 'string' &&
+      clone[key].startsWith('G')
+    ) {
+      clone[key] = maskWalletAddress(clone[key]);
+    }
+    // Mask phone numbers
+    else if (lowerKey.includes('phone') && typeof clone[key] === 'string') {
+      clone[key] = maskValue(clone[key], 2);
+    }
+    // Recursively sanitize nested objects
+    else if (typeof clone[key] === 'object') {
+      clone[key] = sanitizeBody(clone[key], depth + 1);
     }
   }
 
@@ -48,9 +120,10 @@ export class LoggerMiddleware implements NestMiddleware {
 
     const method = req.method;
     const url = req.originalUrl;
-    const ip =
+    const rawIp =
       (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
       req.socket.remoteAddress;
+    const ip = maskIp(rawIp);
 
     const userAgent = req.headers['user-agent'];
     const requestHeaders = sanitizeHeaders(req.headers as any);
