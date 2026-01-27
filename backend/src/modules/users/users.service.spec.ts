@@ -32,6 +32,14 @@ describe('UsersService', () => {
     lastLoginAt: new Date(),
     isActive: true,
     refreshToken: null,
+    // MFA fields
+    mfaEnabled: false,
+    mfaSecret: null,
+    mfaBackupCodes: null,
+    // Password security fields
+    passwordHistory: null,
+    passwordChangedAt: null,
+    tokensValidAfter: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

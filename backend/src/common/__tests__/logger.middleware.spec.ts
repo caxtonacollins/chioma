@@ -32,7 +32,7 @@ describe('LoggerMiddleware', () => {
     const result = sanitizeBody(input);
 
     expect(result).toEqual({
-      email: 'test@example.com',
+      email: '***@example.com', // Emails are now masked for privacy
       password: '[REDACTED]',
       token: '[REDACTED]',
       nested: {
