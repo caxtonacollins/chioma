@@ -1,5 +1,6 @@
 'use client'
 
+import Image from "next/image";
 import Footer from '@/components/Footer'
 import Navbar from '@/components/Properties-navbar'
 import { Heart, MapPin, Bed, Bath, Ruler, Search, Filter, Bell, Plus, Minus, Compass } from 'lucide-react'
@@ -157,7 +158,7 @@ export default function PropertyListing() {
 
               {/* Verified Badge */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 mb-8 flex gap-3 sm:gap-4">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
@@ -193,8 +194,9 @@ export default function PropertyListing() {
                       <Image
                         src={property.image || "/placeholder.svg"}
                         alt={property.title}
-                        fill
-                        className="object-cover"
+                        className="w-full h-full object-cover"
+                        width={40}
+                        height={40}
                       />
                       {/* Verified Badge */}
                       {property.verified && (
@@ -227,7 +229,7 @@ export default function PropertyListing() {
 
                       {/* Location */}
                       <div className="flex gap-2 text-gray-600 mb-4 text-xs sm:text-sm">
-                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
                         <p>{property.location}</p>
                       </div>
 
@@ -249,7 +251,7 @@ export default function PropertyListing() {
 
                       {/* Manager */}
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-400 to-orange-400" />
+                        <div className="w-8 h-8 rounded-full bg-linear-to-r from-pink-400 to-orange-400" />
                         <p className="text-xs sm:text-sm text-gray-700">
                           Managed by <span className="font-semibold">{property.manager}</span>
                         </p>
@@ -269,9 +271,9 @@ export default function PropertyListing() {
           </div>
 
           {/* Right Sidebar - Map */}
-          <div className="w-full lg:w-3/5 xl:w-1/2 h-96 lg:h-[calc(100vh-100px)] bg-blue-200 relative sticky top-20 lg:top-24 lg:sticky">
+          <div className="w-full lg:w-3/5 xl:w-1/2 h-96 lg:h-[calc(100vh-100px)] bg-blue-200 relative top-20 lg:top-24 lg:sticky">
             {/* Map Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-blue-200">
+            <div className="absolute inset-0 bg-linear-to-br from-blue-100 to-blue-200">
               <div className="absolute inset-0 opacity-50 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect fill=%22white%22 width=%22100%22 height=%22100%22/><path d=%22M0 50 Q25 25 50 50 T100 50%22 stroke=%22%23e5e7eb%22 fill=%22none%22/></svg>')]" />
             </div>
 

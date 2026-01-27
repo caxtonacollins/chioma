@@ -15,6 +15,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ApiKeyModule } from './modules/api-keys/api-key.module';
+import { DisputesModule } from './modules/disputes/disputes.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { HealthModule } from './health/health.module';
 import { SecurityModule } from './security/security.module';
@@ -52,6 +53,7 @@ import { RATE_LIMIT_DEFAULTS } from './common/constants/security.constants';
     AuthModule,
     UsersModule,
     ApiKeyModule,
+    DisputesModule,
     TypeOrmModule.forRoot(AppDataSource.options),
     HealthModule,
     SecurityModule,

@@ -46,7 +46,7 @@ const RevenueChart = () => {
 
       {/* Chart */}
       <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={320}>
           <LineChart
             data={revenueData}
             margin={{ top: 10, right: 10, left: 0, bottom: 0 }}

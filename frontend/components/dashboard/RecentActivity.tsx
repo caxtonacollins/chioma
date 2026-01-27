@@ -4,6 +4,7 @@ import React from "react";
 import { Wrench, FileCheck, CreditCard, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
+
 const RecentActivity = () => {
   const MOCK_NOW = new Date("2025-01-24T12:00:00");
 
@@ -84,12 +85,10 @@ const RecentActivity = () => {
               key={activity.id}
               className="flex items-start space-x-4 p-4 rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer group"
             >
-              {/* Icon */}
               <div className={`p-3 rounded-lg ${activity.iconBg} shrink-0`}>
                 <Icon className={activity.iconColor} size={20} />
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-1">
                   <h4 className="text-sm font-semibold text-neutral-900 group-hover:text-brand-blue transition-colors">
@@ -115,7 +114,6 @@ const RecentActivity = () => {
         })}
       </div>
 
-      {/* View All Link */}
       <button className="mt-4 w-full flex items-center justify-center space-x-2 py-3 text-sm font-semibold text-neutral-600 hover:text-brand-blue hover:bg-neutral-50 rounded-lg transition-colors group">
         <span>View All Activity</span>
         <ChevronRight
