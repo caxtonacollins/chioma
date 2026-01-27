@@ -1,6 +1,5 @@
 /// Dispute resolution and admin override for the Escrow contract.
 /// Allows either party to freeze funds and requires admin to resolve.
-
 use soroban_sdk::{Address, BytesN, Env, String};
 
 use super::access::AccessControl;
@@ -112,7 +111,10 @@ impl DisputeHandler {
 
     /// Get dispute information for an escrow.
     /// Returns the dispute reason if escrow is disputed, None otherwise.
-    pub fn get_dispute_info(env: &Env, escrow_id: &BytesN<32>) -> Result<Option<String>, EscrowError> {
+    pub fn get_dispute_info(
+        env: &Env,
+        escrow_id: &BytesN<32>,
+    ) -> Result<Option<String>, EscrowError> {
         let escrow = EscrowStorage::get(env, escrow_id).ok_or(EscrowError::EscrowNotFound)?;
 
         Ok(escrow.dispute_reason)

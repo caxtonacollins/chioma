@@ -1,5 +1,4 @@
 /// Data structures and enums for the Escrow contract.
-
 use soroban_sdk::{contracttype, Address, BytesN, String};
 
 /// Status of an escrow throughout its lifecycle.

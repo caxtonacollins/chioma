@@ -1,6 +1,5 @@
 /// Module exports for the Escrow system.
 /// Re-exports public types and implementations for clean API.
-
 pub mod access;
 pub mod dispute;
 pub mod errors;

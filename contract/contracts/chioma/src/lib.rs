@@ -8,7 +8,7 @@ mod types;
 use types::{AgreementStatus, DataKey, PaymentRecord, RentAgreement};
 
 pub mod escrow;
-use escrow::{EscrowContract, DisputeHandler, EscrowError};
+use escrow::{DisputeHandler, EscrowContract, EscrowError};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -112,21 +112,28 @@ impl Contract {
     }
 
     /// Retrieves a rent agreement by its unique identifier.
-   
+
     pub fn get_agreement(env: Env, agreement_id: String) -> Option<RentAgreement> {
-        env.storage().persistent().get(&DataKey::Agreement(agreement_id))
+        env.storage()
+            .persistent()
+            .get(&DataKey::Agreement(agreement_id))
     }
 
     /// Checks whether a rent agreement exists for the given identifier.
-    
+
     pub fn has_agreement(env: Env, agreement_id: String) -> bool {
-        env.storage().persistent().has(&DataKey::Agreement(agreement_id))
+        env.storage()
+            .persistent()
+            .has(&DataKey::Agreement(agreement_id))
     }
 
     /// Returns the total number of rent agreements created.
-    
+
     pub fn get_agreement_count(env: Env) -> u32 {
-        env.storage().instance().get(&DataKey::AgreementCount).unwrap_or(0)
+        env.storage()
+            .instance()
+            .get(&DataKey::AgreementCount)
+            .unwrap_or(0)
     }
 
     fn validate_agreement_params(

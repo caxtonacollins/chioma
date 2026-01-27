@@ -1,6 +1,5 @@
 /// Access control and role-based authorization for the Escrow contract.
 /// Validates that callers have the proper role to perform actions.
-
 use soroban_sdk::{Address, Env};
 
 use super::errors::EscrowError;
@@ -39,9 +38,7 @@ impl AccessControl {
 
     /// Verify caller is any of the three parties (depositor, beneficiary, or arbiter).
     pub fn is_party(escrow: &Escrow, caller: &Address) -> Result<(), EscrowError> {
-        if escrow.depositor == *caller
-            || escrow.beneficiary == *caller
-            || escrow.arbiter == *caller
+        if escrow.depositor == *caller || escrow.beneficiary == *caller || escrow.arbiter == *caller
         {
             Ok(())
         } else {

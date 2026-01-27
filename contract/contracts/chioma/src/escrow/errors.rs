@@ -1,6 +1,5 @@
 /// Custom error types for the Escrow contract.
 /// Each error maps to a unique contract error code.
-
 use soroban_sdk::contracterror;
 
 #[contracterror]

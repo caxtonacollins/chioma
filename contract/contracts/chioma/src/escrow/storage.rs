@@ -1,6 +1,5 @@
 /// Storage operations for the Escrow contract.
 /// Implements single-responsibility getter/setter helpers.
-
 use soroban_sdk::{BytesN, Env, Vec};
 
 use super::types::{DataKey, Escrow, ReleaseApproval};
@@ -30,7 +29,11 @@ impl EscrowStorage {
     /// Returns empty Vec if no approvals exist yet.
     pub fn get_approvals(env: &Env, escrow_id: &BytesN<32>) -> Vec<ReleaseApproval> {
         let key = DataKey::Approvals(escrow_id.clone());
-        match env.storage().persistent().get::<_, Vec<ReleaseApproval>>(&key) {
+        match env
+            .storage()
+            .persistent()
+            .get::<_, Vec<ReleaseApproval>>(&key)
+        {
             Some(approvals) => approvals,
             None => Vec::new(env),
         }
@@ -54,7 +57,11 @@ impl EscrowStorage {
 
     /// Get the current count of escrows created.
     pub fn get_count(env: &Env) -> u32 {
-        match env.storage().instance().get::<_, u32>(&DataKey::EscrowCount) {
+        match env
+            .storage()
+            .instance()
+            .get::<_, u32>(&DataKey::EscrowCount)
+        {
             Some(count) => count,
             None => 0,
         }

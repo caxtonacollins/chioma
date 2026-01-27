@@ -1,6 +1,5 @@
 /// Core escrow lifecycle logic: creation, funding, approvals, and release.
 /// Implements checks-effects-interactions pattern for reentrancy safety.
-
 use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, String, Vec};
 
 use super::access::AccessControl;
@@ -80,7 +79,11 @@ impl EscrowContract {
     ///
     /// INTERACTIONS:
     /// - Token transfer would happen after state update (not yet in this version)
-    pub fn fund_escrow(env: &Env, escrow_id: &BytesN<32>, caller: &Address) -> Result<(), EscrowError> {
+    pub fn fund_escrow(
+        env: &Env,
+        escrow_id: &BytesN<32>,
+        caller: &Address,
+    ) -> Result<(), EscrowError> {
         // CHECKS: Get and validate escrow
         let mut escrow = EscrowStorage::get(env, escrow_id).ok_or(EscrowError::EscrowNotFound)?;
 
