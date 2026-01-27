@@ -8,6 +8,8 @@ import { AuthController } from './auth.controller';
 import { User } from '../users/entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { MfaService } from './mfa/mfa.service';
+import { MfaController, MfaVerificationController } from './mfa/mfa.controller';
 
 @Module({
   imports: [
@@ -26,8 +28,8 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
-  exports: [AuthService, JwtModule, PassportModule],
+  controllers: [AuthController, MfaController, MfaVerificationController],
+  providers: [AuthService, MfaService, JwtStrategy, RefreshTokenStrategy],
+  exports: [AuthService, MfaService, JwtModule, PassportModule],
 })
 export class AuthModule {}
