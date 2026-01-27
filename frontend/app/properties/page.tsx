@@ -1,11 +1,10 @@
 'use client'
 
-import Image from "next/image";
+import Image from 'next/image'
 import Footer from '@/components/Footer'
 import Navbar from '@/components/Properties-navbar'
 import { Heart, MapPin, Bed, Bath, Ruler, Search, Filter, Bell, Plus, Minus, Compass } from 'lucide-react'
 import { useState } from 'react'
-import Image from 'next/image'
 
 export default function PropertyListing() {
   const [, setSelectedFilter] = useState('Property Type')
