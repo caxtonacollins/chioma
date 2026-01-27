@@ -15,7 +15,6 @@ import {
   Plus,
   LogOut,
   Menu,
-  X,
 } from "lucide-react";
 
 interface DashboardLayoutProps {

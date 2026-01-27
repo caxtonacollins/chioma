@@ -13,7 +13,7 @@ import {
 import { ChevronDown } from "lucide-react";
 
 const RevenueChart = () => {
-  const [timeRange, setTimeRange] = useState("Last 6 Months");
+  const [timeRange] = useState("Last 6 Months");
 
   const revenueData = [
     { month: "Jan", revenue: 2.0 },

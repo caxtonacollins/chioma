@@ -5,13 +5,15 @@ import { Wrench, FileCheck, CreditCard, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const RecentActivity = () => {
+  const MOCK_NOW = new Date("2025-01-24T12:00:00");
+
   const activities = [
     {
       id: 1,
       type: "maintenance",
       title: "Maintenance Request - Unit 12",
       description: "Leak reported in master bathroom",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      timestamp: new Date(MOCK_NOW.getTime() - 2 * 60 * 60 * 1000),
       status: "pending",
       icon: Wrench,
       iconBg: "bg-orange-100",
@@ -22,7 +24,7 @@ const RecentActivity = () => {
       type: "lease",
       title: "Lease Signed - Apt 12",
       description: "New tenant: Michael Johnson",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+      timestamp: new Date(MOCK_NOW.getTime() - 5 * 60 * 60 * 1000),
       status: "completed",
       icon: FileCheck,
       iconBg: "bg-green-100",
@@ -34,7 +36,7 @@ const RecentActivity = () => {
       type: "payment",
       title: "Rent Payment - Unit 101",
       description: "Received ₦2.5M via Stellar",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      timestamp: new Date(MOCK_NOW.getTime() - 24 * 60 * 60 * 1000),
       status: "received",
       icon: CreditCard,
       iconBg: "bg-blue-100",

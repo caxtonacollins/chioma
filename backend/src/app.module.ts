@@ -11,6 +11,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AgreementsModule } from './modules/agreements/agreements.module';
+import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ApiKeyModule } from './modules/api-keys/api-key.module';
@@ -47,6 +48,7 @@ import { RATE_LIMIT_DEFAULTS } from './common/constants/security.constants';
       logging: process.env.NODE_ENV === 'development',
     }),
     AgreementsModule,
+    AuditModule,
     AuthModule,
     UsersModule,
     ApiKeyModule,

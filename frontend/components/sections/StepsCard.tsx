@@ -49,7 +49,7 @@ export default function StepsCard() {
             }}
           />
 
-          {steps.map((step, index) => (
+          {steps.map((step) => (
             <div
               key={step.id}
               className="relative flex flex-col items-center text-center group"
