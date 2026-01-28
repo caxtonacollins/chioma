@@ -360,3 +360,134 @@ fn test_get_total_paid() {
     let total_nonexistent = client.get_total_paid(&String::from_str(&env, "NONEXISTENT"));
     assert_eq!(total_nonexistent, 0);
 }
+
+#[test]
+fn test_get_agreement() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+    let agreement_id = String::from_str(&env, "AGR_GET_TEST");
+
+    // Create agreement first
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &100,
+        &200,
+        &0,
+    );
+
+    // Retrieve agreement
+    let agreement = client.get_agreement(&agreement_id);
+    assert!(agreement.is_some());
+    let agreement = agreement.unwrap();
+    assert_eq!(agreement.agreement_id, agreement_id);
+    assert_eq!(agreement.monthly_rent, 1000);
+    assert_eq!(agreement.landlord, landlord);
+    assert_eq!(agreement.tenant, tenant);
+}
+
+#[test]
+fn test_get_nonexistent_agreement() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    let agreement_id = String::from_str(&env, "NONEXISTENT_AGR");
+    let agreement = client.get_agreement(&agreement_id);
+    assert!(agreement.is_none());
+}
+
+#[test]
+fn test_has_agreement() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+    let agreement_id = String::from_str(&env, "AGR_HAS_TEST");
+
+    // Agreement doesn't exist yet
+    assert_eq!(client.has_agreement(&agreement_id), false);
+
+    // Create agreement
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &100,
+        &200,
+        &0,
+    );
+
+    // Agreement should exist now
+    assert_eq!(client.has_agreement(&agreement_id), true);
+}
+
+#[test]
+fn test_get_agreement_count() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    // Initially zero
+    assert_eq!(client.get_agreement_count(), 0);
+
+    let tenant1 = Address::generate(&env);
+    let landlord1 = Address::generate(&env);
+    let agreement_id1 = String::from_str(&env, "AGR_COUNT_1");
+
+    client.create_agreement(
+        &agreement_id1,
+        &landlord1,
+        &tenant1,
+        &None,
+        &1000,
+        &2000,
+        &100,
+        &200,
+        &0,
+    );
+    assert_eq!(client.get_agreement_count(), 1);
+
+    let tenant2 = Address::generate(&env);
+    let landlord2 = Address::generate(&env);
+    let agreement_id2 = String::from_str(&env, "AGR_COUNT_2");
+
+    client.create_agreement(
+        &agreement_id2,
+        &landlord2,
+        &tenant2,
+        &None,
+        &1500,
+        &3000,
+        &200,
+        &300,
+        &0,
+    );
+    assert_eq!(client.get_agreement_count(), 2);
+}
+
+// Note: Escrow tests are commented out because escrow functions are not yet exposed
+// in the main Contract impl. Once escrow functions are exposed in lib.rs, these tests
+// can be uncommented and updated to use the ContractClient.
+//
+// To expose escrow functions, add them to the Contract impl in lib.rs, for example:
+// pub fn create_escrow(env: Env, depositor: Address, beneficiary: Address, ...) -> Result<BytesN<32>, EscrowError> {
+//     EscrowContract::create(&env, depositor, beneficiary, ...)
+// }
