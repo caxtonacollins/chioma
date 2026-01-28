@@ -91,7 +91,7 @@ jobs:
       # Frontend dependency scan
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run npm audit (frontend)
         working-directory: frontend

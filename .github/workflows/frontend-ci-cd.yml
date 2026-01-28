@@ -67,7 +67,7 @@ jobs:
           cache-dependency-path: "./frontend/package-lock.json"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run unit tests
         run: |
@@ -105,7 +105,7 @@ jobs:
           cache-dependency-path: "./frontend/package-lock.json"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Create production build
         run: npm run build
