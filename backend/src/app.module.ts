@@ -23,6 +23,8 @@ import { SecretsModule } from './config/secrets.config';
 import { AppDataSource } from './database/data-source';
 import { AuthRateLimitMiddleware } from './modules/auth/middleware/rate-limit.middleware';
 import { RATE_LIMIT_DEFAULTS } from './common/constants/security.constants';
+import { PaymentModule } from './modules/payments/payment.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -58,6 +60,8 @@ import { RATE_LIMIT_DEFAULTS } from './common/constants/security.constants';
     HealthModule,
     SecurityModule,
     SecretsModule,
+    PaymentModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [
