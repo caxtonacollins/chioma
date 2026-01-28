@@ -1,7 +1,4 @@
-import {
-  ValidationPipe,
-  BadRequestException,
-} from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { DisputeStatus, DisputeType } from '../entities/dispute.entity';
 
 export class DisputeValidationPipe extends ValidationPipe {
@@ -21,19 +18,36 @@ export class DisputeValidationPipe extends ValidationPipe {
  * Custom validator for dispute status transitions
  */
 export class DisputeStatusValidator {
-  static isValidTransition(currentStatus: DisputeStatus, newStatus: DisputeStatus): boolean {
-    const validTransitions = {
-      [DisputeStatus.OPEN]: [DisputeStatus.UNDER_REVIEW, DisputeStatus.WITHDRAWN],
-      [DisputeStatus.UNDER_REVIEW]: [DisputeStatus.RESOLVED, DisputeStatus.REJECTED, DisputeStatus.OPEN],
+  static isValidTransition(
+    currentStatus: DisputeStatus,
+    newStatus: DisputeStatus,
+  ): boolean {
+    const validTransitions: Record<DisputeStatus, DisputeStatus[]> = {
+      [DisputeStatus.OPEN]: [
+        DisputeStatus.UNDER_REVIEW,
+        DisputeStatus.WITHDRAWN,
+      ],
+      [DisputeStatus.UNDER_REVIEW]: [
+        DisputeStatus.RESOLVED,
+        DisputeStatus.REJECTED,
+        DisputeStatus.OPEN,
+      ],
       [DisputeStatus.RESOLVED]: [], // Terminal state
       [DisputeStatus.REJECTED]: [DisputeStatus.OPEN], // Can be reopened
       [DisputeStatus.WITHDRAWN]: [], // Terminal state
     };
 
-    return validTransitions[currentStatus as string]?.includes(newStatus as string) || false;
+    const transitions = validTransitions[currentStatus];
+    if (!transitions) {
+      return false;
+    }
+    return transitions.includes(newStatus);
   }
 
-  static getErrorMessage(currentStatus: DisputeStatus, newStatus: DisputeStatus): string {
+  static getErrorMessage(
+    currentStatus: DisputeStatus,
+    newStatus: DisputeStatus,
+  ): string {
     return `Invalid status transition from ${currentStatus} to ${newStatus}`;
   }
 }

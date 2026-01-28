@@ -304,8 +304,8 @@ describe('Security Features Test Suite', () => {
 
     it('should detect event handlers', () => {
       // Find pattern that matches event handlers (onclick, onerror, etc.)
-      const pattern = XSS_PATTERNS.find((p) => 
-        p.source.includes('on') && p.source.includes('\\w+')
+      const pattern = XSS_PATTERNS.find(
+        (p) => p.source.includes('on') && p.source.includes('\\w+'),
       );
       expect(pattern).toBeDefined();
       expect(testXss(pattern!, 'onclick=alert(1)')).toBe(true);

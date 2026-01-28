@@ -33,7 +33,7 @@ interface UploadedFile {
 /**
  * Extended Request with file uploads
  */
-interface RequestWithFiles extends Request {
+interface RequestWithFiles extends Omit<Request, 'file' | 'files'> {
   file?: UploadedFile;
   files?: UploadedFile[] | Record<string, UploadedFile[]>;
 }

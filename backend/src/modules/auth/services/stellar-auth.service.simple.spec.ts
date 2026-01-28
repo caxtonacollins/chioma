@@ -92,7 +92,7 @@ describe('StellarAuthService', () => {
 
     it('should generate challenge for valid address', () => {
       // Mock the Stellar SDK methods to avoid actual key generation
-      const { Keypair, TransactionBuilder, Networks, Operation, Memo } = require('@stellar/stellar-sdk');
+      const { Keypair, Networks } = require('@stellar/stellar-sdk');
       const mockKeypair = Keypair.fromSecret(
         'SBYYY3IL3A2RFQCUINOZLGV3S4BCMCEB4TGMRL7G5KMT2Q4AOTEEUGDJ',
       );

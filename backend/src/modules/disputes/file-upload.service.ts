@@ -2,24 +2,46 @@ import { Injectable } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination?: string;
+  filename?: string;
+  path?: string;
+  buffer?: Buffer;
+}
+
 @Injectable()
 export class FileUploadService {
   /**
    * Multer configuration for file uploads
    */
   static getMulterConfig() {
+    const storage = diskStorage({
+      destination: './uploads/disputes/evidence',
+      filename: (
+        _req,
+        file: MulterFile,
+        cb: (error: Error | null, filename: string) => void,
+      ) => {
+        const randomName = Array(32)
+          .fill(null)
+          .map(() => Math.round(Math.random() * 16).toString(16))
+          .join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    });
+
     return {
-      storage: diskStorage({
-        destination: './uploads/disputes/evidence',
-        filename: (req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
-      fileFilter: (req, file, cb) => {
+      storage,
+      fileFilter: (
+        _req,
+        file: MulterFile,
+        cb: (error: Error | null, acceptFile: boolean) => void,
+      ) => {
         const allowedMimes = [
           'image/jpeg',
           'image/png',
@@ -33,7 +55,12 @@ export class FileUploadService {
         if (allowedMimes.includes(file.mimetype)) {
           cb(null, true);
         } else {
-          cb(new Error('Invalid file type. Only images, PDFs, and documents are allowed.'), false);
+          cb(
+            new Error(
+              'Invalid file type. Only images, PDFs, and documents are allowed.',
+            ),
+            false,
+          );
         }
       },
       limits: {
@@ -52,7 +79,10 @@ export class FileUploadService {
   /**
    * Validate file before upload
    */
-  validateFile(file: any): { isValid: boolean; error?: string } {
+  validateFile(file: MulterFile): {
+    isValid: boolean;
+    error?: string;
+  } {
     const allowedMimes = [
       'image/jpeg',
       'image/png',
@@ -68,7 +98,8 @@ export class FileUploadService {
     if (!allowedMimes.includes(file.mimetype)) {
       return {
         isValid: false,
-        error: 'Invalid file type. Only images, PDFs, and documents are allowed',
+        error:
+          'Invalid file type. Only images, PDFs, and documents are allowed',
       };
     }
 

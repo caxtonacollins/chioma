@@ -68,7 +68,7 @@ async function bootstrap() {
       // Allow requests with no origin (mobile apps, Postman, etc.) in development
       if (
         !origin ||
-        (origin && allowedOrigins.includes(origin)) ||
+        allowedOrigins.includes(origin) ||
         process.env.NODE_ENV === 'development'
       ) {
         callback(null, true);

@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '../../users/entities/user.entity';
 import { DISPUTE_PERMISSION_KEY } from '../decorators/dispute-permission.decorator';
@@ -7,7 +12,7 @@ import { DISPUTE_PERMISSION_KEY } from '../decorators/dispute-permission.decorat
 export class DisputePermissionGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const requiredPermission = this.reflector.get<string>(
       DISPUTE_PERMISSION_KEY,
       context.getHandler(),
@@ -17,9 +22,12 @@ export class DisputePermissionGuard implements CanActivate {
       return true; // No specific permission required
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<{
+      user?: { role?: UserRole; id?: string };
+      params?: { disputeId?: string; id?: string };
+    }>();
     const user = request.user;
-    const disputeId = request.params.disputeId || request.params.id;
+    const disputeId = request.params?.disputeId || request.params?.id;
 
     if (!user || !disputeId) {
       throw new ForbiddenException('Authentication required');
@@ -30,28 +38,31 @@ export class DisputePermissionGuard implements CanActivate {
     return this.checkPermission(user, requiredPermission);
   }
 
-  private checkPermission(user: any, permission: string): boolean {
+  private checkPermission(
+    user: { role?: UserRole },
+    permission: string,
+  ): boolean {
     switch (permission) {
       case 'create_dispute':
         // Users can create disputes, admins can create any
         return user.role === UserRole.USER || user.role === UserRole.ADMIN;
-      
+
       case 'view_dispute':
         // All authenticated users can view disputes they're party to
         return user.role === UserRole.USER || user.role === UserRole.ADMIN;
-      
+
       case 'manage_dispute':
         // Only admins can manage disputes
         return user.role === UserRole.ADMIN;
-      
+
       case 'add_evidence':
         // Users can add evidence to disputes they're party to
         return user.role === UserRole.USER || user.role === UserRole.ADMIN;
-      
+
       case 'add_comment':
         // Users can add comments to disputes they're party to
         return user.role === UserRole.USER || user.role === UserRole.ADMIN;
-      
+
       default:
         return false;
     }

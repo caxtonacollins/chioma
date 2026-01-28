@@ -7,12 +7,13 @@ import {
   Param,
   Query,
   UseGuards,
-  Request,
+  Req,
   UploadedFile,
   UseInterceptors,
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DisputesService } from './disputes.service';
 import { CreateDisputeDto } from './dto/create-dispute.dto';
@@ -33,13 +34,24 @@ export class DisputesController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createDispute(@Body() createDisputeDto: CreateDisputeDto, @Request() req) {
-    return this.disputesService.createDispute(createDisputeDto, req.user.id);
+  async createDispute(
+    @Body() createDisputeDto: CreateDisputeDto,
+    @Req() req: Request & { user?: { id: string } },
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    return this.disputesService.createDispute(createDisputeDto, userId);
   }
 
   @Get()
-  async findAll(@Query() query: QueryDisputesDto, @Request() req) {
-    return this.disputesService.findAll(query, req.user.id);
+  async findAll(
+    @Query() query: QueryDisputesDto,
+    @Req() req: Request & { user?: { id: string } },
+  ) {
+    const userId = req.user?.id;
+    return this.disputesService.findAll(query, userId);
   }
 
   @Get(':id')
@@ -53,28 +65,47 @@ export class DisputesController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateDisputeDto: UpdateDisputeDto, @Request() req) {
-    return this.disputesService.update(parseInt(id), updateDisputeDto, req.user.id);
+  async update(
+    @Param('id') id: string,
+    @Body() updateDisputeDto: UpdateDisputeDto,
+    @Req() req: Request & { user?: { id: string } },
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    return this.disputesService.update(parseInt(id), updateDisputeDto, userId);
   }
 
   @Post(':disputeId/evidence')
   @UseInterceptors(FileInterceptor('file'))
   async addEvidence(
     @Param('disputeId') disputeId: string,
-    @UploadedFile() file: any,
+    @UploadedFile()
+    file:
+      | { path?: string; originalname: string; mimetype: string; size: number }
+      | undefined,
     @Body() dto: AddEvidenceDto,
-    @Request() req,
+    @Req() req: Request & { user?: { id: string } },
   ) {
-    return this.disputesService.addEvidence(disputeId, file, req.user.id, dto);
+    const userId = req.user?.id;
+    if (!userId || !file) {
+      throw new Error('User not authenticated or file missing');
+    }
+    return this.disputesService.addEvidence(disputeId, file, userId, dto);
   }
 
   @Post(':disputeId/comment')
   async addComment(
     @Param('disputeId') disputeId: string,
     @Body() addCommentDto: AddCommentDto,
-    @Request() req,
+    @Req() req: Request & { user?: { id: string } },
   ) {
-    return this.disputesService.addComment(disputeId, addCommentDto, req.user.id);
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    return this.disputesService.addComment(disputeId, addCommentDto, userId);
   }
 
   @Post(':disputeId/resolve')
@@ -83,13 +114,25 @@ export class DisputesController {
   async resolveDispute(
     @Param('disputeId') disputeId: string,
     @Body() resolveDisputeDto: ResolveDisputeDto,
-    @Request() req,
+    @Req() req: Request & { user?: { id: string } },
   ) {
-    return this.disputesService.resolveDispute(disputeId, resolveDisputeDto, req.user.id);
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    return this.disputesService.resolveDispute(
+      disputeId,
+      resolveDisputeDto,
+      userId,
+    );
   }
 
   @Get('agreement/:agreementId/disputes')
-  async getAgreementDisputes(@Param('agreementId') agreementId: string, @Request() req) {
-    return this.disputesService.getAgreementDisputes(agreementId, req.user.id);
+  async getAgreementDisputes(
+    @Param('agreementId') agreementId: string,
+    @Req() req: Request & { user?: { id: string } },
+  ) {
+    const userId = req.user?.id;
+    return this.disputesService.getAgreementDisputes(agreementId, userId);
   }
 }

@@ -1,10 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Request } from 'express';
 import { DisputesController } from '../disputes.controller';
 import { DisputesService } from '../disputes.service';
 import { CreateDisputeDto } from '../dto/create-dispute.dto';
 import { AddCommentDto } from '../dto/add-comment.dto';
 import { ResolveDisputeDto } from '../dto/resolve-dispute.dto';
-import { Dispute, DisputeStatus, DisputeType } from '../entities/dispute.entity';
+import {
+  Dispute,
+  DisputeStatus,
+  DisputeType,
+} from '../entities/dispute.entity';
 
 describe('DisputesController', () => {
   let controller: DisputesController;
@@ -27,6 +32,12 @@ describe('DisputesController', () => {
     id: 'user-1',
     email: 'test@example.com',
     role: 'USER',
+  };
+
+  const createMockRequest = (): Request & { user?: { id: string } } => {
+    return {
+      user: { id: mockUser.id },
+    } as Request & { user?: { id: string } };
   };
 
   beforeEach(async () => {
@@ -67,13 +78,18 @@ describe('DisputesController', () => {
         description: 'Test dispute description',
       };
 
-      jest.spyOn(service, 'createDispute')
-        .mockResolvedValue(mockDispute);
+      jest.spyOn(service, 'createDispute').mockResolvedValue(mockDispute);
 
-      const result = await controller.createDispute(createDisputeDto, { user: mockUser });
+      const result = await controller.createDispute(
+        createDisputeDto,
+        createMockRequest(),
+      );
 
       expect(result).toEqual(mockDispute);
-      expect(service.createDispute).toHaveBeenCalledWith(createDisputeDto, mockUser.id);
+      expect(service.createDispute).toHaveBeenCalledWith(
+        createDisputeDto,
+        mockUser.id,
+      );
     });
   });
 
@@ -84,10 +100,9 @@ describe('DisputesController', () => {
         total: 1,
       };
 
-      jest.spyOn(service, 'findAll')
-        .mockResolvedValue(mockResult);
+      jest.spyOn(service, 'findAll').mockResolvedValue(mockResult);
 
-      const result = await controller.findAll({}, { user: mockUser });
+      const result = await controller.findAll({}, createMockRequest());
 
       expect(result).toEqual(mockResult);
       expect(service.findAll).toHaveBeenCalledWith({}, mockUser.id);
@@ -96,8 +111,7 @@ describe('DisputesController', () => {
 
   describe('findOne', () => {
     it('should return a dispute by ID', async () => {
-      jest.spyOn(service, 'findOne')
-        .mockResolvedValue(mockDispute);
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockDispute);
 
       const result = await controller.findOne('1');
 
@@ -108,8 +122,7 @@ describe('DisputesController', () => {
 
   describe('findByDisputeId', () => {
     it('should return a dispute by disputeId', async () => {
-      jest.spyOn(service, 'findByDisputeId')
-        .mockResolvedValue(mockDispute);
+      jest.spyOn(service, 'findByDisputeId').mockResolvedValue(mockDispute);
 
       const result = await controller.findByDisputeId('dispute-uuid-1');
 
@@ -135,13 +148,20 @@ describe('DisputesController', () => {
         updatedAt: new Date(),
       };
 
-      jest.spyOn(service, 'addComment')
-        .mockResolvedValue(mockComment);
+      jest.spyOn(service, 'addComment').mockResolvedValue(mockComment);
 
-      const result = await controller.addComment('dispute-uuid-1', addCommentDto, { user: mockUser });
+      const result = await controller.addComment(
+        'dispute-uuid-1',
+        addCommentDto,
+        createMockRequest(),
+      );
 
       expect(result).toEqual(mockComment);
-      expect(service.addComment).toHaveBeenCalledWith('dispute-uuid-1', addCommentDto, mockUser.id);
+      expect(service.addComment).toHaveBeenCalledWith(
+        'dispute-uuid-1',
+        addCommentDto,
+        mockUser.id,
+      );
     });
   });
 
@@ -159,25 +179,39 @@ describe('DisputesController', () => {
         resolvedAt: new Date(),
       };
 
-      jest.spyOn(service, 'resolveDispute')
-        .mockResolvedValue(resolvedDispute);
+      jest.spyOn(service, 'resolveDispute').mockResolvedValue(resolvedDispute);
 
-      const result = await controller.resolveDispute('dispute-uuid-1', resolveDisputeDto, { user: mockUser });
+      const result = await controller.resolveDispute(
+        'dispute-uuid-1',
+        resolveDisputeDto,
+        createMockRequest(),
+      );
 
       expect(result).toEqual(resolvedDispute);
-      expect(service.resolveDispute).toHaveBeenCalledWith('dispute-uuid-1', resolveDisputeDto, mockUser.id);
+      expect(service.resolveDispute).toHaveBeenCalledWith(
+        'dispute-uuid-1',
+        resolveDisputeDto,
+        mockUser.id,
+      );
     });
   });
 
   describe('getAgreementDisputes', () => {
     it('should return disputes for an agreement', async () => {
-      jest.spyOn(service, 'getAgreementDisputes')
+      jest
+        .spyOn(service, 'getAgreementDisputes')
         .mockResolvedValue([mockDispute]);
 
-      const result = await controller.getAgreementDisputes('1', { user: mockUser });
+      const result = await controller.getAgreementDisputes(
+        '1',
+        createMockRequest(),
+      );
 
       expect(result).toEqual([mockDispute]);
-      expect(service.getAgreementDisputes).toHaveBeenCalledWith('1', mockUser.id);
+      expect(service.getAgreementDisputes).toHaveBeenCalledWith(
+        '1',
+        mockUser.id,
+      );
     });
   });
 });
