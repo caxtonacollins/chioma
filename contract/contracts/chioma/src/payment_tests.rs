@@ -1,7 +1,6 @@
-#![cfg(test)]
-
 use crate::payment::*;
 use crate::types::*;
+use soroban_sdk::token::StellarAssetClient as TokenAdminClient;
 use soroban_sdk::{testutils::Address as _, Address, Env, String};
 
 // Helper function to create a test agreement
@@ -14,18 +13,27 @@ fn create_test_agreement(
     monthly_rent: i128,
     commission_rate: u32,
     status: AgreementStatus,
-) -> Agreement {
-    Agreement {
-        id: String::from_str(env, id),
+) -> RentAgreement {
+    RentAgreement {
+        agreement_id: String::from_str(env, id),
         tenant: tenant.clone(),
         landlord: landlord.clone(),
         agent,
         monthly_rent,
-        commission_rate,
+        agent_commission_rate: commission_rate,
         status,
         total_rent_paid: 0,
         payment_count: 0,
+        security_deposit: 0,
+        start_date: 0,
+        end_date: 0,
+        signed_at: None,
     }
+}
+
+fn create_token(env: &Env, admin: &Address) -> Address {
+    env.register_stellar_asset_contract_v2(admin.clone())
+        .address()
 }
 
 #[test]
@@ -35,8 +43,12 @@ fn test_pay_rent_without_agent() {
 
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    let token = Address::generate(&env);
-    
+    let token_admin = Address::generate(&env);
+    let token = create_token(&env, &token_admin);
+
+    // Mint tokens to tenant
+    TokenAdminClient::new(&env, &token).mint(&tenant, &100000);
+
     let agreement = create_test_agreement(
         &env,
         "agreement_1",
@@ -48,17 +60,15 @@ fn test_pay_rent_without_agent() {
         AgreementStatus::Active,
     );
 
-    env.as_contract(&Address::generate(&env), || {
-        env.storage()
-            .instance()
-            .set(&DataKey::Agreement(agreement.id.clone()), &agreement);
-
-        let result = RentalContract::pay_rent(
-            env.clone(),
-            agreement.id.clone(),
-            token,
-            1000,
+    let contract_id = env.register(RentalContract, ());
+    env.as_contract(&contract_id, || {
+        env.storage().persistent().set(
+            &DataKey::Agreement(agreement.agreement_id.clone()),
+            &agreement,
         );
+
+        let result =
+            RentalContract::pay_rent(env.clone(), agreement.agreement_id.clone(), token, 1000);
 
         assert!(result.is_ok());
     });
@@ -72,8 +82,12 @@ fn test_pay_rent_with_agent_commission() {
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
     let agent = Address::generate(&env);
-    let token = Address::generate(&env);
-    
+    let token_admin = Address::generate(&env);
+    let token = create_token(&env, &token_admin);
+
+    // Mint tokens to tenant
+    TokenAdminClient::new(&env, &token).mint(&tenant, &100000);
+
     let agreement = create_test_agreement(
         &env,
         "agreement_2",
@@ -85,17 +99,15 @@ fn test_pay_rent_with_agent_commission() {
         AgreementStatus::Active,
     );
 
-    env.as_contract(&Address::generate(&env), || {
-        env.storage()
-            .instance()
-            .set(&DataKey::Agreement(agreement.id.clone()), &agreement);
-
-        let result = RentalContract::pay_rent(
-            env.clone(),
-            agreement.id.clone(),
-            token,
-            1000,
+    let contract_id = env.register(RentalContract, ());
+    env.as_contract(&contract_id, || {
+        env.storage().persistent().set(
+            &DataKey::Agreement(agreement.agreement_id.clone()),
+            &agreement,
         );
+
+        let result =
+            RentalContract::pay_rent(env.clone(), agreement.agreement_id.clone(), token, 1000);
 
         assert!(result.is_ok());
 
@@ -113,8 +125,12 @@ fn test_payment_record_created() {
 
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    let token = Address::generate(&env);
-    
+    let token_admin = Address::generate(&env);
+    let token = create_token(&env, &token_admin);
+
+    // Mint tokens to tenant
+    TokenAdminClient::new(&env, &token).mint(&tenant, &100000);
+
     let agreement = create_test_agreement(
         &env,
         "agreement_3",
@@ -126,24 +142,21 @@ fn test_payment_record_created() {
         AgreementStatus::Active,
     );
 
-    env.as_contract(&Address::generate(&env), || {
-        env.storage()
-            .instance()
-            .set(&DataKey::Agreement(agreement.id.clone()), &agreement);
+    let contract_id = env.register(RentalContract, ());
+    env.as_contract(&contract_id, || {
+        env.storage().persistent().set(
+            &DataKey::Agreement(agreement.agreement_id.clone()),
+            &agreement,
+        );
 
-        RentalContract::pay_rent(
-            env.clone(),
-            agreement.id.clone(),
-            token,
-            1000,
-        ).unwrap();
+        RentalContract::pay_rent(env.clone(), agreement.agreement_id.clone(), token, 1000).unwrap();
 
         // Verify payment record exists
         let record: Option<PaymentRecord> = env
             .storage()
-            .instance()
-            .get(&DataKey::PaymentRecord(agreement.id.clone(), 1));
-        
+            .persistent()
+            .get(&DataKey::PaymentRecord(agreement.agreement_id.clone(), 1));
+
         assert!(record.is_some());
         let record = record.unwrap();
         assert_eq!(record.amount, 1000);
@@ -159,8 +172,12 @@ fn test_wrong_rent_amount() {
 
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    let token = Address::generate(&env);
-    
+    let token_admin = Address::generate(&env);
+    let token = create_token(&env, &token_admin);
+
+    // Mint tokens to tenant
+    TokenAdminClient::new(&env, &token).mint(&tenant, &100000);
+
     let agreement = create_test_agreement(
         &env,
         "agreement_4",
@@ -172,18 +189,21 @@ fn test_wrong_rent_amount() {
         AgreementStatus::Active,
     );
 
-    env.as_contract(&Address::generate(&env), || {
-        env.storage()
-            .instance()
-            .set(&DataKey::Agreement(agreement.id.clone()), &agreement);
+    let contract_id = env.register(RentalContract, ());
+    env.as_contract(&contract_id, || {
+        env.storage().persistent().set(
+            &DataKey::Agreement(agreement.agreement_id.clone()),
+            &agreement,
+        );
 
         // Try to pay wrong amount
         RentalContract::pay_rent(
             env.clone(),
-            agreement.id.clone(),
+            agreement.agreement_id.clone(),
             token,
             900, // Wrong amount
-        ).unwrap();
+        )
+        .unwrap();
     });
 }
 
@@ -195,8 +215,12 @@ fn test_pay_rent_before_deposit() {
 
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    let token = Address::generate(&env);
-    
+    let token_admin = Address::generate(&env);
+    let token = create_token(&env, &token_admin);
+
+    // Mint tokens to tenant
+    TokenAdminClient::new(&env, &token).mint(&tenant, &100000);
+
     let agreement = create_test_agreement(
         &env,
         "agreement_5",
@@ -208,17 +232,14 @@ fn test_pay_rent_before_deposit() {
         AgreementStatus::Pending, // Not active
     );
 
-    env.as_contract(&Address::generate(&env), || {
-        env.storage()
-            .instance()
-            .set(&DataKey::Agreement(agreement.id.clone()), &agreement);
+    let contract_id = env.register(RentalContract, ());
+    env.as_contract(&contract_id, || {
+        env.storage().persistent().set(
+            &DataKey::Agreement(agreement.agreement_id.clone()),
+            &agreement,
+        );
 
-        RentalContract::pay_rent(
-            env.clone(),
-            agreement.id.clone(),
-            token,
-            1000,
-        ).unwrap();
+        RentalContract::pay_rent(env.clone(), agreement.agreement_id.clone(), token, 1000).unwrap();
     });
 }
 
@@ -229,8 +250,12 @@ fn test_multiple_rent_payments() {
 
     let tenant = Address::generate(&env);
     let landlord = Address::generate(&env);
-    let token = Address::generate(&env);
-    
+    let token_admin = Address::generate(&env);
+    let token = create_token(&env, &token_admin);
+
+    // Mint tokens to tenant
+    TokenAdminClient::new(&env, &token).mint(&tenant, &100000);
+
     let agreement = create_test_agreement(
         &env,
         "agreement_6",
@@ -242,47 +267,51 @@ fn test_multiple_rent_payments() {
         AgreementStatus::Active,
     );
 
-    env.as_contract(&Address::generate(&env), || {
-        env.storage()
-            .instance()
-            .set(&DataKey::Agreement(agreement.id.clone()), &agreement);
+    let contract_id = env.register(RentalContract, ());
+    env.as_contract(&contract_id, || {
+        env.storage().persistent().set(
+            &DataKey::Agreement(agreement.agreement_id.clone()),
+            &agreement,
+        );
 
         // First payment
         RentalContract::pay_rent(
             env.clone(),
-            agreement.id.clone(),
+            agreement.agreement_id.clone(),
             token.clone(),
             1000,
-        ).unwrap();
+        )
+        .unwrap();
 
         // Second payment
         RentalContract::pay_rent(
             env.clone(),
-            agreement.id.clone(),
+            agreement.agreement_id.clone(),
             token.clone(),
             1000,
-        ).unwrap();
+        )
+        .unwrap();
 
         // Verify agreement totals
-        let updated_agreement: Agreement = env
+        let updated_agreement: RentAgreement = env
             .storage()
-            .instance()
-            .get(&DataKey::Agreement(agreement.id.clone()))
+            .persistent()
+            .get(&DataKey::Agreement(agreement.agreement_id.clone()))
             .unwrap();
-        
+
         assert_eq!(updated_agreement.total_rent_paid, 2000);
         assert_eq!(updated_agreement.payment_count, 2);
 
         // Verify both payment records exist
         let record1: Option<PaymentRecord> = env
             .storage()
-            .instance()
-            .get(&DataKey::PaymentRecord(agreement.id.clone(), 1));
+            .persistent()
+            .get(&DataKey::PaymentRecord(agreement.agreement_id.clone(), 1));
         let record2: Option<PaymentRecord> = env
             .storage()
-            .instance()
-            .get(&DataKey::PaymentRecord(agreement.id.clone(), 2));
-        
+            .persistent()
+            .get(&DataKey::PaymentRecord(agreement.agreement_id.clone(), 2));
+
         assert!(record1.is_some());
         assert!(record2.is_some());
     });

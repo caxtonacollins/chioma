@@ -43,7 +43,7 @@ export class SecurityEvent {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ name: 'user_id', nullable: true, type: 'varchar' })
   userId: string | null;
 
   @Column({
@@ -60,7 +60,7 @@ export class SecurityEvent {
   })
   severity: SecurityEventSeverity;
 
-  @Column({ name: 'ip_address', nullable: true })
+  @Column({ name: 'ip_address', nullable: true, type: 'varchar' })
   ipAddress: string | null;
 
   @Column({ name: 'user_agent', nullable: true, type: 'text' })

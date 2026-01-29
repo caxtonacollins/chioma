@@ -1,15 +1,18 @@
-use soroban_sdk::{contract, contractimpl, Address, Env, String, Vec};
+use crate::types::{AgreementStatus, DataKey, Error, PaymentRecord, RentAgreement};
 use soroban_sdk::token::Client as TokenClient;
-use crate::types::{Error, PaymentRecord, Agreement, AgreementStatus, DataKey};
+use soroban_sdk::{contract, contractimpl, Address, Env, String};
 
 // Types are defined in `types.rs` and imported above.
 
 #[contract]
+#[allow(dead_code)]
 pub struct RentalContract;
 
 #[contractimpl]
+#[allow(dead_code)]
 impl RentalContract {
     /// Process rent payment with automatic commission splitting
+    #[allow(deprecated)] // Suppress warning for env.events().publish
     pub fn pay_rent(
         env: Env,
         agreement_id: String,
@@ -17,9 +20,9 @@ impl RentalContract {
         amount: i128,
     ) -> Result<(), Error> {
         // Load agreement
-        let mut agreement: Agreement = env
+        let mut agreement: RentAgreement = env
             .storage()
-            .instance()
+            .persistent()
             .get(&DataKey::Agreement(agreement_id.clone()))
             .ok_or(Error::InvalidAmount)?;
 
@@ -37,27 +40,19 @@ impl RentalContract {
         agreement.tenant.require_auth();
 
         // Calculate payment split
-        let (landlord_amount, agent_amount) = 
-            calculate_payment_split(&amount, &agreement.commission_rate);
+        let (landlord_amount, agent_amount) =
+            calculate_payment_split(&amount, &agreement.agent_commission_rate);
 
         // Execute atomic token transfers
         let token_client = TokenClient::new(&env, &token);
-        
+
         // Transfer to landlord
-        token_client.transfer(
-            &agreement.tenant,
-            &agreement.landlord,
-            &landlord_amount,
-        );
+        token_client.transfer(&agreement.tenant, &agreement.landlord, &landlord_amount);
 
         // Transfer to agent if present
         if let Some(agent_address) = &agreement.agent {
             if agent_amount > 0 {
-                token_client.transfer(
-                    &agreement.tenant,
-                    agent_address,
-                    &agent_amount,
-                );
+                token_client.transfer(&agreement.tenant, agent_address, &agent_amount);
             }
         }
 
@@ -80,16 +75,14 @@ impl RentalContract {
 
         // Persist updated agreement
         env.storage()
-            .instance()
+            .persistent()
             .set(&DataKey::Agreement(agreement_id.clone()), &agreement);
 
         // Persist payment record
-        env.storage()
-            .instance()
-            .set(
-                &DataKey::PaymentRecord(agreement_id.clone(), agreement.payment_count),
-                &payment_record,
-            );
+        env.storage().persistent().set(
+            &DataKey::PaymentRecord(agreement_id.clone(), agreement.payment_count),
+            &payment_record,
+        );
 
         // Emit event
         env.events().publish(
@@ -101,11 +94,10 @@ impl RentalContract {
     }
 }
 
-
-
 /// Create an immutable payment record
+#[allow(dead_code)]
 pub(crate) fn create_payment_record(
-    env: &Env,
+    _env: &Env,
     agreement_id: &String,
     amount: i128,
     landlord_amount: i128,
@@ -125,6 +117,7 @@ pub(crate) fn create_payment_record(
     })
 }
 
+#[allow(dead_code)]
 pub(crate) fn calculate_payment_split(amount: &i128, commission_rate: &u32) -> (i128, i128) {
     // commission_rate is in basis points (1 basis point = 0.01%)
     let agent_amount = (amount * (*commission_rate as i128)) / 10000;
