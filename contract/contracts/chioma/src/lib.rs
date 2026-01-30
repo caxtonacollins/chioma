@@ -1,29 +1,11 @@
 #![no_std]
 #![allow(clippy::too_many_arguments)]
-use soroban_sdk::{
-    contract, contracterror, contractevent, contractimpl, vec, Address, Bytes, Env, String, Vec,
-};
+use soroban_sdk::{contract, contractevent, contractimpl, vec, Address, Env, String, Vec};
 
 mod types;
-use types::{AgreementStatus, DataKey, PaymentRecord, RentAgreement, UserProfile};
+use types::{AgreementStatus, DataKey, Error, PaymentRecord, RentAgreement};
 
-const MAX_DATA_HASH_LEN: usize = 64;
-const MIN_UPDATE_INTERVAL: u64 = 3600;
-
-#[contracterror]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
-#[repr(u32)]
-pub enum Error {
-    AgreementAlreadyExists = 4,
-    InvalidAmount = 5,
-    InvalidDate = 6,
-    InvalidCommissionRate = 7,
-    PaymentNotFound = 11,
-    InvalidAccountType = 12,
-    InvalidDataHash = 13,
-    ProfileNotFound = 14,
-    RateLimited = 15,
-}
+pub mod escrow;
 
 #[contractevent]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -91,6 +73,8 @@ impl Contract {
             end_date,
             agent_commission_rate,
             status: AgreementStatus::Draft,
+            total_rent_paid: 0,
+            payment_count: 0,
         };
 
         // Store agreement
@@ -116,21 +100,25 @@ impl Contract {
     }
 
     /// Retrieves a rent agreement by its unique identifier.
-   
     pub fn get_agreement(env: Env, agreement_id: String) -> Option<RentAgreement> {
-        env.storage().persistent().get(&DataKey::Agreement(agreement_id))
+        env.storage()
+            .persistent()
+            .get(&DataKey::Agreement(agreement_id))
     }
 
     /// Checks whether a rent agreement exists for the given identifier.
-    
     pub fn has_agreement(env: Env, agreement_id: String) -> bool {
-        env.storage().persistent().has(&DataKey::Agreement(agreement_id))
+        env.storage()
+            .persistent()
+            .has(&DataKey::Agreement(agreement_id))
     }
 
     /// Returns the total number of rent agreements created.
-    
     pub fn get_agreement_count(env: Env) -> u32 {
-        env.storage().instance().get(&DataKey::AgreementCount).unwrap_or(0)
+        env.storage()
+            .instance()
+            .get(&DataKey::AgreementCount)
+            .unwrap_or(0)
     }
 
     fn validate_agreement_params(
@@ -293,5 +281,9 @@ impl Contract {
         Ok(())
     }
 }
-
+mod payment;
 mod test;
+
+// Only compile the payment tests during `cargo test`
+#[cfg(test)]
+mod payment_tests;
