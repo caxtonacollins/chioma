@@ -1,3 +1,8 @@
+/**
+ * MIT License
+ * Copyright (c) 2026 caxton strange
+ */
+
 import {
   Entity,
   PrimaryGeneratedColumn,
