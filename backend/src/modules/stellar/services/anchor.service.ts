@@ -154,8 +154,8 @@ export class AnchorService {
 
       // Update transaction status
       transaction.status = this.mapAnchorStatus(anchorTx.status);
-      transaction.stellarTransactionHash = anchorTx.stellar_transaction_id;
-      transaction.errorMessage = anchorTx.message;
+      transaction.stellarTransactionHash = anchorTx.stellar_transaction_id || null;
+      transaction.errorMessage = anchorTx.message || null;
 
       return await this.anchorTransactionRepository.save(transaction);
     } catch (error) {

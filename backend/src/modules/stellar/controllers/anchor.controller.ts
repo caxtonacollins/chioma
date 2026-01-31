@@ -16,6 +16,7 @@ import {
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
+import { AnchorTransaction } from '../../transactions/entities/anchor-transaction.entity';
 import { AnchorService } from '../services/anchor.service';
 import {
   DepositRequestDto,
