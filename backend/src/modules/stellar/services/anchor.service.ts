@@ -63,8 +63,8 @@ export class AnchorService {
     private supportedCurrencyRepo: Repository<SupportedCurrency>,
     private configService: ConfigService,
   ) {
-    this.anchorApiUrl = this.configService.get<string>('ANCHOR_API_URL');
-    this.anchorApiKey = this.configService.get<string>('ANCHOR_API_KEY');
+    this.anchorApiUrl = this.configService.get<string>('ANCHOR_API_URL') || '';
+    this.anchorApiKey = this.configService.get<string>('ANCHOR_API_KEY') || '';
     this.supportedCurrencies =
       this.configService
         .get<string>('SUPPORTED_FIAT_CURRENCIES', 'USD,EUR,GBP,NGN')

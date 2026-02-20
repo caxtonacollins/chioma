@@ -53,19 +53,19 @@ export class AnchorTransaction {
   walletAddress: string;
 
   @Column({ name: 'payment_method', nullable: true })
-  paymentMethod: string;
+  paymentMethod?: string;
 
   @Column({ type: 'text', nullable: true })
-  destination: string;
+  destination?: string;
 
   @Column({ name: 'stellar_transaction_id', nullable: true })
-  stellarTransactionId: string;
+  stellarTransactionId?: string;
 
   @Column({ type: 'text', nullable: true })
-  memo: string;
+  memo?: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata?: Record<string, any>;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
