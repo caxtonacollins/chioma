@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class AddIpfsCidToProfileMetadata1769280100000
-  implements MigrationInterface
-{
+export class AddIpfsCidToProfileMetadata1769280100000 implements MigrationInterface {
   name = 'AddIpfsCidToProfileMetadata1769280100000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

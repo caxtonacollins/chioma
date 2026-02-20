@@ -7,9 +7,7 @@ import {
 } from 'class-validator';
 
 @ValidatorConstraint({ name: 'isStellarAddress', async: false })
-export class IsStellarAddressConstraint
-  implements ValidatorConstraintInterface
-{
+export class IsStellarAddressConstraint implements ValidatorConstraintInterface {
   validate(address: string) {
     if (!address) return false;
 

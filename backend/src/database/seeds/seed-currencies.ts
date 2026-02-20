@@ -66,7 +66,7 @@ export async function seedSupportedCurrencies(dataSource: DataSource) {
 
 // Run if executed directly
 if (require.main === module) {
-  import('../../database/data-source').then(async ({ AppDataSource }) => {
+  void import('../../database/data-source').then(async ({ AppDataSource }) => {
     try {
       await AppDataSource.initialize();
       console.log('Database connected');
