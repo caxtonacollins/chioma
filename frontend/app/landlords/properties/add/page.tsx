@@ -570,7 +570,7 @@ export default function AddPropertyPage() {
                   <div className="relative w-full h-32 rounded-lg overflow-hidden border border-neutral-200">
                     <Image
                       src={preview}
-                      alt={`Preview ${index + 1}`}
+                      alt={`Property image preview ${index + 1}: ${formData.name || 'Property'}`}
                       fill
                       className="object-cover"
                     />
