@@ -16,6 +16,7 @@ import {
   Minus,
   Compass,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 
 export default function PropertyListing() {
@@ -32,8 +33,11 @@ export default function PropertyListing() {
       baths: 2,
       sqft: 1200,
       manager: 'Sarah Okafor',
-      image:
-        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=400&fit=crop',
+      images: [
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
+      ],
       verified: true,
     },
     {
@@ -45,8 +49,11 @@ export default function PropertyListing() {
       baths: 3,
       sqft: 1850,
       manager: 'David Ibrahim',
-      image:
-        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=400&fit=crop',
+      images: [
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&h=600&fit=crop',
+      ],
       verified: true,
     },
     {
@@ -58,8 +65,10 @@ export default function PropertyListing() {
       baths: 1,
       sqft: 600,
       manager: 'Chioma N.',
-      image:
-        'https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=500&h=400&fit=crop',
+      images: [
+        'https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1536376074432-cd2258bb644d?w=800&h=600&fit=crop',
+      ],
       verified: false,
     },
     {
@@ -71,8 +80,10 @@ export default function PropertyListing() {
       baths: 5,
       sqft: 3200,
       manager: 'James Obi',
-      image:
-        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=400&fit=crop',
+      images: [
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop',
+      ],
       verified: true,
     },
     {
@@ -84,8 +95,10 @@ export default function PropertyListing() {
       baths: 1,
       sqft: 500,
       manager: 'Emmanuel K.',
-      image:
-        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=400&fit=crop',
+      images: [
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1527359443443-84a48abc7df0?w=800&h=600&fit=crop',
+      ],
       verified: false,
     },
     {
@@ -97,8 +110,10 @@ export default function PropertyListing() {
       baths: 3,
       sqft: 2100,
       manager: 'Grace A.',
-      image:
-        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500&h=400&fit=crop',
+      images: [
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1501183315624-887f114a6ee2?w=800&h=600&fit=crop',
+      ],
       verified: true,
     },
   ];
@@ -221,18 +236,19 @@ export default function PropertyListing() {
               {/* Property Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-4 mb-8">
                 {properties.map((property) => (
-                  <div
+                  <Link
                     key={property.id}
+                    href={`/properties/${property.id}`}
                     className="border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow bg-white"
                   >
                     {/* Image */}
                     <div className="relative h-60 sm:h-56 bg-gray-200 overflow-hidden">
                       <Image
-                        src={property.image || '/placeholder.svg'}
+                        src={property.images[0] || '/placeholder.svg'}
                         alt={property.title}
                         className="w-full h-full object-cover"
-                        width={40}
-                        height={40}
+                        width={400}
+                        height={300}
                       />
                       {/* Verified Badge */}
                       {property.verified && (
@@ -309,7 +325,7 @@ export default function PropertyListing() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
 
