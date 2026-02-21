@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import { NAV_LINKS } from '@/constants/navigation';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,13 +29,6 @@ const Navbar = () => {
     };
   }, []);
 
-  const navLinks = [
-    { name: 'Find a Home', href: '/properties' },
-    { name: 'For Landlords', href: '/landlords' },
-    { name: 'For Agents', href: '/agents' },
-    { name: 'Resources', href: '/resources' },
-  ];
-
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
@@ -56,7 +50,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-10">
-          {navLinks.map((link) => {
+          {NAV_LINKS.map((link) => {
             const active = isActive(link.href);
 
             return (
@@ -107,7 +101,7 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 glass-dark border-t border-white/10 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex flex-col p-6 space-y-4">
-            {navLinks.map((link) => {
+            {NAV_LINKS.map((link) => {
               const active = isActive(link.href);
 
               return (
@@ -152,3 +146,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
