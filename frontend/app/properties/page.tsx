@@ -25,7 +25,6 @@ export default function PropertyListing() {
   const [searchAsIMove, setSearchAsIMove] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate loading data
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -246,14 +245,12 @@ export default function PropertyListing() {
               {/* Property Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-4 mb-8">
                 {isLoading ? (
-                  // Show skeleton loaders while loading
                   <>
                     {Array.from({ length: 6 }).map((_, index) => (
                       <PropertyCardSkeleton key={index} />
                     ))}
                   </>
                 ) : (
-                  // Show actual property cards when loaded
                   properties.map((property) => (
                     <Link
                       key={property.id}
@@ -287,7 +284,14 @@ export default function PropertyListing() {
                           </div>
                         )}
                         {/* Wishlist Heart */}
-                        <button className="absolute top-4 right-4 bg-white rounded-full p-2 hover:bg-gray-100 transition shadow">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // handle wishlist toggle
+                          }}
+                          className="absolute top-4 right-4 bg-white rounded-full p-2 hover:bg-gray-100 transition shadow"
+                        >
                           <Heart className="w-5 h-5 text-gray-400 hover:text-red-500" />
                         </button>
                         {/* Lease Badge */}
