@@ -69,6 +69,15 @@ impl Contract {
         env.storage().instance().get(&DataKey::State)
     }
 
+    fn check_paused(env: &Env) -> Result<(), RentalError> {
+        if let Some(state) = Self::get_state(env.clone()) {
+            if state.config.paused {
+                return Err(RentalError::ContractPaused);
+            }
+        }
+        Ok(())
+    }
+
     /// Update contract configuration.
     ///
     /// # Errors
@@ -108,6 +117,7 @@ impl Contract {
         agent_commission_rate: u32,
         payment_token: Address,
     ) -> Result<(), RentalError> {
+        Self::check_paused(&env)?;
         agreement::create_agreement(
             &env,
             agreement_id,
@@ -128,6 +138,7 @@ impl Contract {
         tenant: Address,
         agreement_id: String,
     ) -> Result<(), RentalError> {
+        Self::check_paused(&env)?;
         agreement::sign_agreement(&env, tenant, agreement_id)
     }
 
