@@ -261,8 +261,10 @@ fn test_create_agreement_success() {
 
     let events = env.events().all();
     assert_eq!(events.len(), 1);
+    // Event structure: (contract_id, topics, data)
+    // Topics now include: ["agr_created", tenant, landlord]
     let event = events.last().unwrap();
-    assert_eq!(event.1.len(), 1);
+    assert_eq!(event.1.len(), 3); // 3 topics: event name + tenant + landlord
 }
 
 #[test]

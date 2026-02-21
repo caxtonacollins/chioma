@@ -2,7 +2,7 @@
 use soroban_sdk::{Address, Env, Map, String};
 
 use crate::errors::RentalError;
-use crate::events::{AgreementCreatedEvent, AgreementSigned};
+use crate::events;
 use crate::storage::DataKey;
 use crate::types::{AgreementStatus, PaymentSplit, RentAgreement};
 
@@ -74,9 +74,9 @@ pub fn create_agreement(
     // Initialize agreement
     let agreement = RentAgreement {
         agreement_id: agreement_id.clone(),
-        landlord,
-        tenant,
-        agent,
+        landlord: landlord.clone(),
+        tenant: tenant.clone(),
+        agent: agent.clone(),
         monthly_rent,
         security_deposit,
         start_date,
@@ -113,8 +113,18 @@ pub fn create_agreement(
         .set(&DataKey::AgreementCount, &count);
     env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_BUMP);
 
-    // Emit event
-    AgreementCreatedEvent { agreement_id }.publish(env);
+    // Emit event with topics for indexing
+    events::agreement_created(
+        env,
+        agreement_id,
+        tenant,
+        landlord,
+        monthly_rent,
+        security_deposit,
+        start_date,
+        end_date,
+        agent,
+    );
 
     Ok(())
 }
@@ -162,14 +172,14 @@ pub fn sign_agreement(env: &Env, tenant: Address, agreement_id: String) -> Resul
     );
     env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_BUMP);
 
-    // Emit AgreementSigned event
-    AgreementSigned {
+    // Emit event with topics for indexing
+    events::agreement_signed(
+        env,
         agreement_id,
-        landlord: agreement.landlord.clone(),
-        tenant: tenant.clone(),
-        signed_at: current_time,
-    }
-    .publish(env);
+        tenant,
+        agreement.landlord.clone(),
+        current_time,
+    );
 
     Ok(())
 }

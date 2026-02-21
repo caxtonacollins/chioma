@@ -17,7 +17,6 @@ pub use agreement::{
     sign_agreement, validate_agreement_params,
 };
 pub use errors::RentalError;
-pub use events::{AgreementCreatedEvent, AgreementSigned, ConfigUpdated};
 pub use storage::DataKey;
 pub use types::{AgreementStatus, Config, ContractState, PaymentSplit, RentAgreement};
 
@@ -49,14 +48,14 @@ impl Contract {
 
         let state = ContractState {
             admin: admin.clone(),
-            config,
+            config: config.clone(),
             initialized: true,
         };
 
         env.storage().instance().set(&DataKey::State, &state);
         env.storage().instance().extend_ttl(500000, 500000);
 
-        events::contract_initialized(&env, admin);
+        events::contract_initialized(&env, admin, config);
 
         Ok(())
     }
@@ -85,7 +84,7 @@ impl Contract {
         env.storage().instance().set(&DataKey::State, &state);
         env.storage().instance().extend_ttl(500000, 500000);
 
-        events::config_updated(&env, old_config, new_config);
+        events::config_updated(&env, state.admin, old_config, new_config);
 
         Ok(())
     }
