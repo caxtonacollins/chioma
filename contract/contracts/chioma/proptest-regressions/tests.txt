@@ -1,7 +1,0 @@
-# Seeds for failure cases proptest has generated in the past. It is
-# automatically read and these particular cases re-run before any
-# novel cases are generated.
-#
-# It is recommended to check this file in to source control so that
-# everyone who runs the test benefits from these saved cases.
-cc 03fb1833290f4f12604597a27bdb726256961527bef5c650e73b2a26754b7b03 # shrinks to monthly_rent = 1, security_deposit = 0, start_date = 0, end_date = 1, agent_commission_rate = 0
