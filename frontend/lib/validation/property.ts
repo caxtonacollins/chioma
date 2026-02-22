@@ -34,16 +34,20 @@ export const propertyMediaSchema = z.object({
     .max(10, 'Cannot upload more than 10 images')
     .refine(
       (files) => files.every((file) => file.size <= 5 * 1024 * 1024), // 5MB max
-      'Each image must be less than 5MB'
+      'Each image must be less than 5MB',
     )
     .refine(
       (files) =>
         files.every((file) =>
-          ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'].includes(
-            file.type
-          )
+          [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/svg+xml',
+          ].includes(file.type),
         ),
-      'Only JPEG, PNG, GIF, and SVG images are allowed'
+      'Only JPEG, PNG, GIF, and SVG images are allowed',
     ),
 });
 

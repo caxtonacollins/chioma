@@ -192,7 +192,9 @@ export default function AddPropertyPage() {
                       Monthly Rent (USDC)
                     </label>
                     <input
-                      {...basicDetailsForm.register('rent', { valueAsNumber: true })}
+                      {...basicDetailsForm.register('rent', {
+                        valueAsNumber: true,
+                      })}
                       type="number"
                       className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue outline-none transition-all"
                       placeholder="e.g. 2400"
