@@ -21,7 +21,10 @@ export class AuthResponseDto {
   @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
   accessToken: string | null;
 
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', required: false })
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    required: false,
+  })
   refreshToken: string | null;
 
   @ApiProperty({ type: UserProfileDto })
@@ -30,7 +33,10 @@ export class AuthResponseDto {
   @ApiProperty({ example: false, required: false })
   mfaRequired?: boolean;
 
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', required: false })
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    required: false,
+  })
   mfaToken?: string;
 }
 
@@ -38,4 +44,3 @@ export class MessageResponseDto {
   @ApiProperty({ example: 'Operation successful' })
   message: string;
 }
-

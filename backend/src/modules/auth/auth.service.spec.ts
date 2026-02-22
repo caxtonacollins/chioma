@@ -1,22 +1,25 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AuthService } from './auth.service';
-import { User, UserRole } from '../users/entities/user.entity';
-import { MfaDevice } from './entities/mfa-device.entity';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+
 import {
-  UnauthorizedException,
-  ConflictException,
   BadRequestException,
+  ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { User, UserRole } from '../users/entities/user.entity';
+
+import { AuthService } from './auth.service';
+import { ConfigService } from '@nestjs/config';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from './dto/login.dto';
+import { MfaDevice } from './entities/mfa-device.entity';
+import { MfaService } from './services/mfa.service';
 import { PasswordPolicyService } from './services/password-policy.service';
+import { RegisterDto } from './dto/register.dto';
+import { Repository } from 'typeorm';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -58,6 +61,11 @@ describe('AuthService', () => {
     verify: jest.fn(),
   };
 
+  const mockMfaService = {
+    verifyMfaCode: jest.fn(),
+    getMfaDevice: jest.fn(),
+  };
+
   const mockConfigService = {
     get: jest.fn((key: string) => {
       const config = {
@@ -95,6 +103,10 @@ describe('AuthService', () => {
           useValue: {
             validatePassword: jest.fn().mockResolvedValue(undefined),
           },
+        },
+        {
+          provide: MfaService,
+          useValue: mockMfaService,
         },
       ],
     }).compile();

@@ -51,7 +51,7 @@ export class AuthController {
     private readonly mfaService: MfaService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   @Post('register')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
@@ -261,8 +261,9 @@ export class AuthController {
       throw new UnauthorizedException('Invalid MFA code');
     }
 
-    const result = await this.authService.completeMfaLogin(
+    const result = await this.mfaService.completeMfaLogin(
       completeMfaLoginDto.mfaToken,
+      this.authService,
     );
 
     // Set secure refresh token cookie

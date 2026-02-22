@@ -24,6 +24,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthResponseDto, MessageResponseDto } from './dto/auth-response.dto';
 import { PasswordPolicyService } from './services/password-policy.service';
+import { MfaService } from './services/mfa.service';
 
 const SALT_ROUNDS = 12;
 const MAX_FAILED_ATTEMPTS = 5;
@@ -37,10 +38,9 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(MfaDevice)
-    private mfaDeviceRepository: Repository<MfaDevice>,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private mfaService: MfaService,
     private passwordPolicyService: PasswordPolicyService,
   ) {}
 
@@ -139,39 +139,8 @@ export class AuthService {
 
     await this.userRepository.save(user);
 
-    // Check if MFA is enabled
-    const mfaDevice = await this.mfaDeviceRepository.findOne({
-      where: {
-        userId: user.id,
-        type: MfaDeviceType.TOTP,
-        status: MfaDeviceStatus.ACTIVE,
-      },
-    });
-
-    if (mfaDevice) {
-      // Generate temporary token for MFA verification
-      const tempToken = this.jwtService.sign(
-        {
-          sub: user.id,
-          email: user.email,
-          role: user.role,
-          type: 'mfa_required',
-        },
-        {
-          secret: this.getJwtSecret(),
-          expiresIn: '5m', // Short-lived token for MFA verification
-        },
-      );
-
-      this.logger.log(`MFA required for user: ${user.id}`);
-      return {
-        user: this.sanitizeUser(user),
-        accessToken: null,
-        refreshToken: null,
-        mfaRequired: true,
-        mfaToken: tempToken,
-      } as AuthResponseDto & { mfaRequired: true; mfaToken: string };
-    }
+    const mfauser = await this.mfaService.getMfaDevice(user, this);
+    if (mfauser) return mfauser;
 
     this.logger.log(`User logged in successfully: ${user.id}`);
 
@@ -189,57 +158,6 @@ export class AuthService {
       refreshToken,
       mfaRequired: false,
     };
-  }
-
-  /**
-   * Complete login after MFA verification
-   */
-  async completeMfaLogin(mfaToken: string): Promise<AuthResponseDto> {
-    try {
-      // Verify temporary MFA token
-      const payload = this.jwtService.verify<{
-        sub: string;
-        email: string;
-        role: string;
-        type: string;
-      }>(mfaToken, {
-        secret: this.getJwtSecret(),
-      });
-
-      if (payload.type !== 'mfa_required') {
-        throw new UnauthorizedException('Invalid token type');
-      }
-
-      const user = await this.userRepository.findOne({
-        where: { id: payload.sub },
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
-      // Generate final tokens
-      const { accessToken, refreshToken } = this.generateTokens(
-        user.id,
-        user.email,
-        user.role,
-      );
-
-      await this.updateRefreshToken(user.id, refreshToken);
-
-      this.logger.log(`MFA login completed for user: ${user.id}`);
-
-      return {
-        user: this.sanitizeUser(user),
-        accessToken,
-        refreshToken,
-      };
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Invalid or expired MFA token';
-      this.logger.error(`MFA login failed: ${message}`);
-      throw new UnauthorizedException('Invalid or expired MFA token');
-    }
   }
 
   async refreshToken(
@@ -337,7 +255,7 @@ export class AuthService {
     };
   }
 
-  private getJwtSecret(): string {
+  public getJwtSecret(): string {
     const secret = this.configService.get<string>('JWT_SECRET');
     if (!secret) {
       throw new Error('JWT_SECRET is required');
@@ -453,7 +371,7 @@ export class AuthService {
     await this.userRepository.save(user);
   }
 
-  private generateTokens(
+  public generateTokens(
     userId: string,
     email: string,
     role: string,
@@ -490,7 +408,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async updateRefreshToken(
+  public async updateRefreshToken(
     userId: string,
     refreshToken: string,
   ): Promise<void> {
@@ -500,7 +418,7 @@ export class AuthService {
     });
   }
 
-  private sanitizeUser(user: User) {
+  public sanitizeUser(user: User) {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const {
       password: _password,
