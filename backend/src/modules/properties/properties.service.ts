@@ -185,19 +185,19 @@ export class PropertiesService {
     }
 
     if (filters.city) {
-      queryBuilder.andWhere('LOWER(property.city) = LOWER(:city)', {
+      queryBuilder.andWhere('property.city ILIKE :city', {
         city: filters.city,
       });
     }
 
     if (filters.state) {
-      queryBuilder.andWhere('LOWER(property.state) = LOWER(:state)', {
+      queryBuilder.andWhere('property.state ILIKE :state', {
         state: filters.state,
       });
     }
 
     if (filters.country) {
-      queryBuilder.andWhere('LOWER(property.country) = LOWER(:country)', {
+      queryBuilder.andWhere('property.country ILIKE :country', {
         country: filters.country,
       });
     }
@@ -210,15 +210,21 @@ export class PropertiesService {
 
     if (filters.search) {
       queryBuilder.andWhere(
-        '(LOWER(property.title) LIKE LOWER(:search) OR LOWER(property.description) LIKE LOWER(:search))',
+        '(property.title ILIKE :search OR property.description ILIKE :search)',
         { search: `%${filters.search}%` },
       );
     }
 
     if (filters.amenities && filters.amenities.length > 0) {
+      const amenityParams = Object.fromEntries(
+        filters.amenities.map((a, i) => [`amenity${i}`, a]),
+      );
+      const amenityConditions = filters.amenities
+        .map((_, i) => `pa.name ILIKE :amenity${i}`)
+        .join(' OR ');
       queryBuilder.andWhere(
-        'EXISTS (SELECT 1 FROM property_amenities pa WHERE pa.property_id = property.id AND LOWER(pa.name) IN (:...amenities))',
-        { amenities: filters.amenities.map((a) => a.toLowerCase()) },
+        `EXISTS (SELECT 1 FROM property_amenities pa WHERE pa.property_id = property.id AND (${amenityConditions}))`,
+        amenityParams,
       );
     }
 

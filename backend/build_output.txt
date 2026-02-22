@@ -1,0 +1,66 @@
+
+> backend@0.0.1 build /home/dinahmaccodes/Documents/codes-rust-stellar/drips_waves/chioma/backend
+> nest build
+
+[96msrc/modules/auth/auth.controller.ts[0m:[93m66[0m:[93m11[0m - [91merror[0m[90m TS2693: [0m'AuthResponseDto' only refers to a type, but is being used as a value here.
+
+[7m66[0m     type: AuthResponseDto,
+[7m  [0m [91m          ~~~~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m90[0m:[93m18[0m - [91merror[0m[90m TS2339: [0mProperty 'refreshToken' does not exist on type 'AuthResponseDto'.
+  Property 'refreshToken' does not exist on type 'MfaRequiredResponseDto'.
+
+[7m90[0m       if (result.refreshToken) {
+[7m  [0m [91m                 ~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m91[0m:[93m48[0m - [91merror[0m[90m TS2339: [0mProperty 'refreshToken' does not exist on type 'AuthResponseDto'.
+  Property 'refreshToken' does not exist on type 'MfaRequiredResponseDto'.
+
+[7m91[0m         this.setRefreshTokenCookie(res, result.refreshToken);
+[7m  [0m [91m                                               ~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m105[0m:[93m15[0m - [91merror[0m[90m TS2339: [0mProperty 'refreshToken' does not exist on type 'AuthResponseDto'.
+
+[7m105[0m       const { refreshToken: _refreshToken, ...responseWithoutRefresh } = result;
+[7m   [0m [91m              ~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m136[0m:[93m11[0m - [91merror[0m[90m TS2693: [0m'AuthResponseDto' only refers to a type, but is being used as a value here.
+
+[7m136[0m     type: AuthResponseDto,
+[7m   [0m [91m          ~~~~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m221[0m:[93m11[0m - [91merror[0m[90m TS2693: [0m'AuthResponseDto' only refers to a type, but is being used as a value here.
+
+[7m221[0m     type: AuthResponseDto,
+[7m   [0m [91m          ~~~~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m269[0m:[93m16[0m - [91merror[0m[90m TS2339: [0mProperty 'refreshToken' does not exist on type 'AuthResponseDto'.
+  Property 'refreshToken' does not exist on type 'MfaRequiredResponseDto'.
+
+[7m269[0m     if (result.refreshToken) {
+[7m   [0m [91m               ~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m270[0m:[93m46[0m - [91merror[0m[90m TS2339: [0mProperty 'refreshToken' does not exist on type 'AuthResponseDto'.
+  Property 'refreshToken' does not exist on type 'MfaRequiredResponseDto'.
+
+[7m270[0m       this.setRefreshTokenCookie(res, result.refreshToken);
+[7m   [0m [91m                                             ~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m284[0m:[93m13[0m - [91merror[0m[90m TS2339: [0mProperty 'refreshToken' does not exist on type 'AuthResponseDto'.
+
+[7m284[0m     const { refreshToken: _refreshToken, ...responseWithoutRefresh } = result;
+[7m   [0m [91m            ~~~~~~~~~~~~[0m
+[96msrc/modules/auth/auth.controller.ts[0m:[93m299[0m:[93m11[0m - [91merror[0m[90m TS2693: [0m'AuthResponseDto' only refers to a type, but is being used as a value here.
+
+[7m299[0m     type: AuthResponseDto,
+[7m   [0m [91m          ~~~~~~~~~~~~~~~[0m
+[96msrc/modules/auth/controllers/stellar-auth.controller.ts[0m:[93m105[0m:[93m11[0m - [91merror[0m[90m TS2693: [0m'AuthResponseDto' only refers to a type, but is being used as a value here.
+
+[7m105[0m     type: AuthResponseDto,
+[7m   [0m [91m          ~~~~~~~~~~~~~~~[0m
+[96msrc/modules/auth/services/stellar-auth.service.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2322: [0mType '{ user: { id: string; email: string; firstName: string | null; lastName: string | null; phoneNumber: string | null; avatarUrl: string | null; role: UserRole; emailVerified: boolean; ... 9 more ...; deletedAt?: Date | null; }; accessToken: string; refreshToken: string; }' is not assignable to type 'AuthResponseDto'.
+  Property 'mfaRequired' is missing in type '{ user: { id: string; email: string; firstName: string | null; lastName: string | null; phoneNumber: string | null; avatarUrl: string | null; role: UserRole; emailVerified: boolean; ... 9 more ...; deletedAt?: Date | null; }; accessToken: string; refreshToken: string; }' but required in type 'AuthSuccessResponseDto'.
+
+[7m202[0m     return {
+[7m   [0m [91m    ~~~~~~[0m
+
+  [96msrc/modules/auth/dto/auth-response.dto.ts[0m:[93m31[0m:[93m3[0m
+    [7m31[0m   mfaRequired: false;
+    [7m  [0m [96m  ~~~~~~~~~~~[0m
+    'mfaRequired' is declared here.
+
+Found 12 error(s).
+
+ ELIFECYCLE  Command failed with exit code 1.

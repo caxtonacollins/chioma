@@ -25,6 +25,7 @@ describe('AuthController', () => {
       lastName: 'User',
       role: UserRole.TENANT,
     },
+    mfaRequired: false as const,
   };
 
   const mockMessageResponse = {

@@ -203,6 +203,7 @@ export class StellarAuthService {
       user: this.sanitizeUser(savedUser),
       accessToken,
       refreshToken,
+      mfaRequired: false,
     };
   }
 

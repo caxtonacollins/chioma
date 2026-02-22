@@ -22,7 +22,9 @@
     "migration:generate": "npm run typeorm migration:generate -- -d src/database/data-source.ts",
     "migration:run": "npm run typeorm migration:run -- -d src/database/data-source.ts",
     "migration:revert": "npm run typeorm migration:revert -- -d src/database/data-source.ts",
-    "seed:currencies": "ts-node src/database/seeds/seed-currencies.ts"
+    "seed:currencies": "ts-node src/database/seeds/seed-currencies.ts",
+    "seed:admin": "ts-node src/commands/index.ts admin",
+    "seed:admin:prod": "NODE_ENV=production ts-node src/commands/index.ts admin --force"
   },
   "dependencies": {
     "@nestjs/axios": "^3.1.3",

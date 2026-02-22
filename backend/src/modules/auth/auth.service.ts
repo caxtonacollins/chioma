@@ -95,6 +95,7 @@ export class AuthService {
       user: this.sanitizeUser(savedUser),
       accessToken,
       refreshToken,
+      mfaRequired: false,
     };
   }
 
@@ -112,19 +113,14 @@ export class AuthService {
 
     if (!user.isActive) {
       this.logger.warn(`Login attempt for inactive account: ${email}`);
-      throw new UnauthorizedException('Account has been deactivated');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     if (user.accountLockedUntil) {
       const now = new Date();
       if (user.accountLockedUntil > now) {
-        const minutesRemaining = Math.ceil(
-          (user.accountLockedUntil.getTime() - now.getTime()) / (1000 * 60),
-        );
         this.logger.warn(`Login attempt for locked account: ${email}`);
-        throw new UnauthorizedException(
-          `Account is locked. Try again in ${minutesRemaining} minutes`,
-        );
+        throw new UnauthorizedException('Invalid email or password');
       } else {
         user.accountLockedUntil = null;
         user.failedLoginAttempts = 0;
@@ -172,11 +168,9 @@ export class AuthService {
       this.logger.log(`MFA required for user: ${user.id}`);
       return {
         user: this.sanitizeUser(user),
-        accessToken: null,
-        refreshToken: null,
         mfaRequired: true,
         mfaToken: tempToken,
-      } as AuthResponseDto & { mfaRequired: true; mfaToken: string };
+      };
     }
 
     this.logger.log(`User logged in successfully: ${user.id}`);
@@ -239,6 +233,7 @@ export class AuthService {
         user: this.sanitizeUser(user),
         accessToken,
         refreshToken,
+        mfaRequired: false,
       };
     } catch (error: unknown) {
       const message =

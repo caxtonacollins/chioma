@@ -17,22 +17,64 @@ class UserProfileDto {
   role: string;
 }
 
-export class AuthResponseDto {
+/**
+ * Response for successful login without MFA
+ */
+export class AuthSuccessResponseDto {
   @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
-  accessToken: string | null;
+  accessToken: string;
 
   @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', required: false })
-  refreshToken: string | null;
+  refreshToken?: string;
 
   @ApiProperty({ type: UserProfileDto })
   user: UserProfileDto;
 
-  @ApiProperty({ example: false, required: false })
-  mfaRequired?: boolean;
-
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', required: false })
-  mfaToken?: string;
+  @ApiProperty({ example: false })
+  mfaRequired: false;
 }
+
+/**
+ * Response when MFA verification is required
+ */
+export class AuthMfaRequiredResponseDto {
+  @ApiProperty({ example: null })
+  accessToken: null;
+
+  @ApiProperty({ example: null })
+  refreshToken: null;
+
+  @ApiProperty({ type: UserProfileDto })
+  user: UserProfileDto;
+
+  @ApiProperty({ example: true })
+  mfaRequired: true;
+
+  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
+  mfaToken: string;
+}
+
+/**
+ * Discriminated union type for authentication responses
+ * Ensures type safety by requiring either complete success response or MFA required response
+ */
+export type AuthResponseDto = AuthSuccessResponseDto | AuthMfaRequiredResponseDto;
+
+/**
+ * API response for successful login (refreshToken stored in HTTP-only cookie)
+ */
+export class AuthApiSuccessResponseDto {
+  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
+  accessToken: string;
+
+  @ApiProperty({ type: UserProfileDto })
+  user: UserProfileDto;
+}
+
+/**
+ * Union type for API responses (used by controllers)
+ */
+export type AuthApiResponseDto = AuthApiSuccessResponseDto | AuthMfaRequiredResponseDto;
 
 export class MessageResponseDto {
   @ApiProperty({ example: 'Operation successful' })
