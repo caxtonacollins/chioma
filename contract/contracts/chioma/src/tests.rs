@@ -809,3 +809,98 @@ proptest! {
         }
     }
 }
+
+#[test]
+fn test_contract_paused_operations() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let client = create_contract(&env);
+
+    let admin = Address::generate(&env);
+    let fee_collector = Address::generate(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+    let payment_token = Address::generate(&env);
+
+    let config = Config {
+        fee_bps: 100,
+        fee_collector: fee_collector.clone(),
+        paused: false,
+    };
+    client.initialize(&admin, &config);
+
+    // Pause contract
+    let paused_config = Config {
+        fee_bps: 100,
+        fee_collector: fee_collector.clone(),
+        paused: true,
+    };
+    client.update_config(&paused_config);
+
+    // Verify state is paused
+    let state = client.get_state().unwrap();
+    assert!(state.config.paused);
+
+    // Try create agreement (should fail with ContractPaused = 17)
+    let res = client.try_create_agreement(
+        &String::from_str(&env, "agreement-paused"),
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &500,
+        &100,
+        &200,
+        &10,
+        &payment_token,
+    );
+    assert_eq!(res, Err(Ok(RentalError::ContractPaused)));
+
+    // Unpause
+    let unpaused_config = Config {
+        fee_bps: 100,
+        fee_collector: fee_collector.clone(),
+        paused: false,
+    };
+    client.update_config(&unpaused_config);
+
+    // Create agreement
+    let agreement_id_str = "agreement-active";
+    let agreement_id = String::from_str(&env, agreement_id_str);
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &500,
+        &100,
+        &200,
+        &10,
+        &payment_token,
+    );
+
+    // Manually set to Pending (as create_agreement sets it to Draft)
+    let mut agreement = client.get_agreement(&agreement_id).unwrap();
+    agreement.status = AgreementStatus::Pending;
+
+    // We need to use env.as_contract to write to storage
+    env.as_contract(&client.address, || {
+        env.storage().persistent().set(
+            &storage::DataKey::Agreement(agreement_id.clone()),
+            &agreement,
+        );
+    });
+
+    // Pause again
+    client.update_config(&paused_config);
+
+    // Try sign agreement (should fail)
+    let res_sign = client.try_sign_agreement(&tenant, &agreement_id);
+    assert_eq!(res_sign, Err(Ok(RentalError::ContractPaused)));
+
+    // Unpause and verify success
+    client.update_config(&unpaused_config);
+    let res_sign_success = client.try_sign_agreement(&tenant, &agreement_id);
+    assert!(res_sign_success.is_ok());
+}
