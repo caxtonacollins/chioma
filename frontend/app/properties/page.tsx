@@ -4,25 +4,15 @@ import Image from 'next/image';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Properties-navbar';
 import PropertyCardSkeleton from '@/components/PropertyCardSkeleton';
-import {
-  Heart,
-  MapPin,
-  Bed,
-  Bath,
-  Ruler,
-  Search,
-  Filter,
-  Bell,
-  Plus,
-  Minus,
-  Compass,
-} from 'lucide-react';
+import PropertyCard from '@/components/properties/PropertyCard';
+import SearchFilters from '@/components/properties/SearchFilters';
+import { Plus, Minus, Compass } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function PropertyListing() {
-  const [, setSelectedFilter] = useState('Property Type');
   const [searchAsIMove, setSearchAsIMove] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Simulate loading data
   useEffect(() => {
@@ -35,9 +25,9 @@ export default function PropertyListing() {
   const properties = [
     {
       id: 1,
-      price: '₦2,500,000',
+      price: '$2,500',
       title: 'Luxury 2-Bed Apartment',
-      location: '101 Adeola Odeku St, Victoria Island, Lagos',
+      location: '101 Park Avenue, Manhattan, New York',
       beds: 2,
       baths: 2,
       sqft: 1200,
@@ -48,9 +38,9 @@ export default function PropertyListing() {
     },
     {
       id: 2,
-      price: '₦3,800,000',
-      title: 'Modern Loft in Lekki',
-      location: 'Block 4, Admiralty Way, Lekki Phase 1',
+      price: '$3,800',
+      title: 'Modern Loft in Kensington',
+      location: 'High Street Kensington, London',
       beds: 3,
       baths: 3,
       sqft: 1850,
@@ -61,9 +51,9 @@ export default function PropertyListing() {
     },
     {
       id: 3,
-      price: '₦1,500,000',
+      price: '$1,500',
       title: 'Serviced Studio Flat',
-      location: 'Glover Road, Ikoyi, Lagos',
+      location: 'Shibuya City, Tokyo, Japan',
       beds: 1,
       baths: 1,
       sqft: 600,
@@ -74,9 +64,9 @@ export default function PropertyListing() {
     },
     {
       id: 4,
-      price: '₦15,000,000',
-      title: 'Exquisite 4-Bed Duplex',
-      location: 'Banana Island, Ikoyi',
+      price: '$15,000',
+      title: 'Exquisite 4-Bed Penthouse',
+      location: 'Palm Jumeirah, Dubai, UAE',
       beds: 4,
       baths: 5,
       sqft: 3200,
@@ -87,9 +77,9 @@ export default function PropertyListing() {
     },
     {
       id: 5,
-      price: '₦800,000',
+      price: '$800',
       title: 'Cozy 1-Bed Apartment',
-      location: 'Yaba, Mainland, Lagos',
+      location: 'Neukölln, Berlin, Germany',
       beds: 1,
       baths: 1,
       sqft: 500,
@@ -100,9 +90,9 @@ export default function PropertyListing() {
     },
     {
       id: 6,
-      price: '₦8,500,000',
+      price: '$8,500',
       title: 'Penthouse with Sea View',
-      location: 'Eko Atlantic City, Lagos',
+      location: 'Bondi Beach, Sydney, Australia',
       beds: 3,
       baths: 3,
       sqft: 2100,
@@ -114,63 +104,28 @@ export default function PropertyListing() {
   ];
 
   const priceMarkers = [
-    { price: '₦1,500,000', top: '20%', left: '60%' },
-    { price: '₦2,500,000', top: '30%', left: '70%' },
-    { price: '₦8,500,000', top: '40%', left: '75%' },
-    { price: '₦3,800,000', top: '50%', left: '65%' },
-    { price: '₦15,000,000', top: '65%', left: '55%' },
-    { price: '₦800,000', top: '80%', left: '50%' },
+    { price: '$1,500', top: '20%', left: '60%' },
+    { price: '$2,500', top: '30%', left: '70%' },
+    { price: '$8,500', top: '40%', left: '75%' },
+    { price: '$3,800', top: '50%', left: '65%' },
+    { price: '$15,000', top: '65%', left: '55%' },
+    { price: '$800', top: '80%', left: '50%' },
   ];
+
+  const filteredProperties = properties.filter((property) => {
+    if (!searchQuery) return true;
+    const lowerQuery = searchQuery.toLowerCase();
+    return (
+      property.title.toLowerCase().includes(lowerQuery) ||
+      property.location.toLowerCase().includes(lowerQuery)
+    );
+  });
 
   return (
     <>
       <Navbar />
-      <div className="">
-        {/* Header/Search Bar */}
-        <header className=" top-0 bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex flex-col gap-4 md:gap-0">
-              {/* Search Input */}
-              <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-3 w-full md:w-80">
-                <Search className="w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="City, neighborhood, or address"
-                  className="bg-transparent outline-none flex-1 text-sm text-gray-700 placeholder-gray-400"
-                />
-              </div>
-
-              {/* Filter Buttons and Actions */}
-              <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                <button className="px-4 py-2 text-sm border border-gray-300 rounded-full hover:bg-gray-50 transition">
-                  Price Range
-                </button>
-                <button
-                  onClick={() => setSelectedFilter('Property Type')}
-                  className="px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-full border border-blue-300 hover:bg-blue-200 transition font-medium"
-                >
-                  Property Type
-                </button>
-                <button className="px-4 py-2 text-sm border border-gray-300 rounded-full hover:bg-gray-50 transition">
-                  Beds & Baths
-                </button>
-                <button className="px-4 py-2 text-sm border border-gray-300 rounded-full hover:bg-gray-50 transition hidden sm:inline-block">
-                  Amenities
-                </button>
-                <div className="flex items-center gap-2 ml-auto">
-                  <button className="flex items-center gap-1 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                    <Filter className="w-4 h-4" />
-                    <span className="hidden sm:inline">Filters</span>
-                  </button>
-                  <button className="flex items-center gap-1 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition font-medium">
-                    <Bell className="w-4 h-4" />
-                    <span className="hidden sm:inline">Save Search</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+      <SearchFilters searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <div className="bg-neutral-50 min-h-screen relative">
 
         {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-0">
@@ -180,7 +135,7 @@ export default function PropertyListing() {
               {/* Heading */}
               <div className="mb-6">
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-                  342 Stays in Lagos
+                  {filteredProperties.length} Global Stays
                 </h1>
                 <p className="text-gray-600 text-sm sm:text-base">
                   Check verified listings with smart lease support
@@ -239,97 +194,15 @@ export default function PropertyListing() {
                   </>
                 ) : (
                   // Show actual property cards when loaded
-                  properties.map((property) => (
-                    <div
-                      key={property.id}
-                      className="border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow bg-white"
-                    >
-                      {/* Image */}
-                      <div className="relative h-60 sm:h-56 bg-gray-200 overflow-hidden">
-                        <Image
-                          src={property.image || '/placeholder.svg'}
-                          alt={property.title}
-                          className="w-full h-full object-cover"
-                          width={40}
-                          height={40}
-                        />
-                        {/* Verified Badge */}
-                        {property.verified && (
-                          <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs sm:text-sm font-medium">
-                            <svg
-                              className="w-4 h-4"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            Verified
-                          </div>
-                        )}
-                        {/* Wishlist Heart */}
-                        <button className="absolute top-4 right-4 bg-white rounded-full p-2 hover:bg-gray-100 transition shadow">
-                          <Heart className="w-5 h-5 text-gray-400 hover:text-red-500" />
-                        </button>
-                        {/* Lease Badge */}
-                        <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded text-xs sm:text-sm font-medium">
-                          Smart Lease Ready
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-4 sm:p-5">
-                        {/* Price */}
-                        <p className="text-blue-600 font-bold text-lg sm:text-xl mb-2">
-                          {property.price}{' '}
-                          <span className="text-gray-500 font-normal text-sm">
-                            /yr
-                          </span>
-                        </p>
-
-                        {/* Title */}
-                        <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">
-                          {property.title}
-                        </h3>
-
-                        {/* Location */}
-                        <div className="flex gap-2 text-gray-600 mb-4 text-xs sm:text-sm">
-                          <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                          <p>{property.location}</p>
-                        </div>
-
-                        {/* Features */}
-                        <div className="flex gap-4 sm:gap-6 mb-4 pb-4 border-b border-gray-200 text-gray-700 text-xs sm:text-sm">
-                          <div className="flex items-center gap-1">
-                            <Bed className="w-4 h-4" />
-                            <span>{property.beds} Beds</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Bath className="w-4 h-4" />
-                            <span>{property.baths} Baths</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Ruler className="w-4 h-4" />
-                            <span>{property.sqft} sqft</span>
-                          </div>
-                        </div>
-
-                        {/* Manager */}
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-linear-to-r from-pink-400 to-orange-400" />
-                          <p className="text-xs sm:text-sm text-gray-700">
-                            Managed by{' '}
-                            <span className="font-semibold">
-                              {property.manager}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
+                  filteredProperties.length > 0 ? (
+                    filteredProperties.map((property) => (
+                      <PropertyCard key={property.id} property={property} />
+                    ))
+                  ) : (
+                    <div className="col-span-1 sm:col-span-2 text-center py-12 text-gray-500">
+                      No properties found matching your search.
                     </div>
-                  ))
+                  )
                 )}
               </div>
 
@@ -356,7 +229,7 @@ export default function PropertyListing() {
                 className="absolute transform -translate-x-1/2 -translate-y-1/2"
                 style={{ top: marker.top, left: marker.left }}
               >
-                {marker.price === '₦3,800,000' ? (
+                {marker.price === '$3,800' ? (
                   <div className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg">
                     {marker.price}
                   </div>
