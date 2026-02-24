@@ -15,4 +15,6 @@ pub enum DisputeError {
     AlreadyVoted = 9,
     InvalidDetailsHash = 10,
     InsufficientVotes = 11,
+    AgreementNotFound = 12,
+    InvalidAgreementState = 13,
 }

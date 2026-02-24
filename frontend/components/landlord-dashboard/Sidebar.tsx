@@ -54,6 +54,7 @@ export default function Sidebar() {
               alt="User Avatar"
               width={100}
               height={100}
+              sizes="40px"
               className="rounded-full"
             />
           </div>

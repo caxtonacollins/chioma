@@ -37,7 +37,7 @@ import { User, UserRole } from './entities/user.entity';
 @ApiBearerAuth('JWT-auth')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
@@ -122,7 +122,10 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Restore soft-deleted user account' })
   @ApiResponse({ status: 200, description: 'Account restored successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid input or account not deleted' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input or account not deleted',
+  })
   @ApiResponse({ status: 404, description: 'User not found' })
   async restoreAccount(@Body() userRestoreDto: UserRestoreDto) {
     return this.usersService.restoreAccount(userRestoreDto);

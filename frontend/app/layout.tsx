@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthHydrator } from '@/store/AuthHydrator';
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -96,7 +96,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthHydrator />
+        {children}
       </body>
     </html>
   );

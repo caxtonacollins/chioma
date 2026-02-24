@@ -38,7 +38,7 @@ export class LoggingInterceptor implements NestInterceptor {
           // but we add extra breadcrumb context here.
           Sentry.addBreadcrumb({
             category: 'http',
-            message: `${req.method} ${req.url} - Error: ${error.message}`,
+            message: `${req.method} ${req.url} - Error: ${error instanceof Error ? error.message : String(error)}`,
             level: 'error',
           });
         },

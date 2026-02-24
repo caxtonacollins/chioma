@@ -402,6 +402,73 @@ fn test_invalid_dates_rejected() {
 }
 
 #[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn test_backdated_agreement_rejected() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    let agreement_id = String::from_str(&env, "BACKDATED");
+
+    // Set ledger timestamp to a known value
+    env.ledger().with_mut(|li| {
+        li.timestamp = 1000000;
+    });
+
+    // Try to create agreement with start_date more than 1 day in the past
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &900000, // More than 1 day (86400 seconds) before current time
+        &2000000,
+        &0,
+        &Address::generate(&env),
+    );
+}
+
+#[test]
+fn test_agreement_within_grace_period_accepted() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    let agreement_id = String::from_str(&env, "GRACE_PERIOD");
+
+    // Set ledger timestamp to a known value
+    env.ledger().with_mut(|li| {
+        li.timestamp = 1000000;
+    });
+
+    // Create agreement with start_date within grace period (less than 1 day ago)
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &950000, // Within 1 day grace period
+        &2000000,
+        &0,
+        &Address::generate(&env),
+    );
+
+    assert!(client.has_agreement(&agreement_id));
+}
+
+#[test]
 #[should_panic(expected = "Error(Contract, #4)")]
 fn test_duplicate_agreement_id() {
     let env = Env::default();
@@ -658,6 +725,96 @@ fn test_sign_agreement_event_emission() {
 
     let events_after = env.events().all();
     assert!(events_after.len() > events_before);
+}
+
+#[test]
+fn test_submit_agreement_success() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    let agreement_id = String::from_str(&env, "SUBMIT_001");
+
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &100,
+        &200,
+        &0,
+        &Address::generate(&env),
+    );
+
+    let agreement_before = client.get_agreement(&agreement_id).unwrap();
+    assert_eq!(agreement_before.status, AgreementStatus::Draft);
+
+    client.submit_agreement(&landlord, &agreement_id);
+
+    let agreement_after = client.get_agreement(&agreement_id).unwrap();
+    assert_eq!(agreement_after.status, AgreementStatus::Pending);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #13)")]
+fn test_submit_agreement_not_found() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let landlord = Address::generate(&env);
+
+    client.submit_agreement(&landlord, &String::from_str(&env, "NONEXISTENT"));
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #18)")]
+fn test_submit_agreement_unauthorized() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+    let non_landlord = Address::generate(&env);
+
+    let agreement_id = String::from_str(&env, "SUBMIT_UNAUTH");
+
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &100,
+        &200,
+        &0,
+        &Address::generate(&env),
+    );
+
+    client.submit_agreement(&non_landlord, &agreement_id);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #15)")]
+fn test_submit_agreement_invalid_state() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    let agreement_id = "SUBMIT_INVALID";
+    create_pending_agreement(&env, &client, agreement_id, &tenant, &landlord);
+
+    client.submit_agreement(&landlord, &String::from_str(&env, agreement_id));
 }
 
 #[test]

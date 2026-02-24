@@ -29,6 +29,7 @@ impl DisputeResolutionContract {
     /// # Arguments
     /// * `admin` - The address that will have admin privileges to add arbiters
     /// * `min_votes_required` - Minimum number of votes required to resolve a dispute (default: 3)
+    /// * `chioma_contract` - Address of the chioma rental agreement contract
     ///
     /// # Errors
     /// * `AlreadyInitialized` - If the contract has already been initialized
@@ -36,6 +37,7 @@ impl DisputeResolutionContract {
         env: Env,
         admin: Address,
         min_votes_required: u32,
+        chioma_contract: Address,
     ) -> Result<(), DisputeError> {
         if env.storage().persistent().has(&DataKey::Initialized) {
             return Err(DisputeError::AlreadyInitialized);
@@ -52,6 +54,7 @@ impl DisputeResolutionContract {
             admin: admin.clone(),
             initialized: true,
             min_votes_required,
+            chioma_contract,
         };
 
         env.storage().instance().set(&DataKey::State, &state);
@@ -87,6 +90,7 @@ impl DisputeResolutionContract {
     /// Raise a dispute for a specific agreement.
     ///
     /// # Arguments
+    /// * `raiser` - The address raising the dispute (must be tenant or landlord)
     /// * `agreement_id` - Unique identifier for the agreement in dispute
     /// * `details_hash` - Hash reference to off-chain evidence/details (IPFS, etc.)
     ///
@@ -94,12 +98,14 @@ impl DisputeResolutionContract {
     /// * `NotInitialized` - If the contract hasn't been initialized
     /// * `DisputeAlreadyExists` - If a dispute already exists for this agreement
     /// * `InvalidDetailsHash` - If the details hash is empty
+    /// * `Unauthorized` - If raiser is not a party to the agreement
     pub fn raise_dispute(
         env: Env,
+        raiser: Address,
         agreement_id: String,
         details_hash: String,
     ) -> Result<(), DisputeError> {
-        dispute::raise_dispute(&env, agreement_id, details_hash)
+        dispute::raise_dispute(&env, raiser, agreement_id, details_hash)
     }
 
     /// Vote on an existing dispute (arbiters only).

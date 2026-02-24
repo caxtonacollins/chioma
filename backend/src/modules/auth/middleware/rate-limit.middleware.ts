@@ -78,7 +78,10 @@ export class AuthRateLimitMiddleware implements NestMiddleware {
     return req.ip || 'unknown';
   }
 
-  private parsePositiveInt(value: string | undefined, fallback: number): number {
+  private parsePositiveInt(
+    value: string | undefined,
+    fallback: number,
+  ): number {
     if (!value) {
       return fallback;
     }

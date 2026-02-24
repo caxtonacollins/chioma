@@ -28,7 +28,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async findById(id: string, includeDeleted = false): Promise<User> {
     const user = await this.userRepository.findOne({

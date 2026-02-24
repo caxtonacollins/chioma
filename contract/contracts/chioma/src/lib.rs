@@ -14,7 +14,7 @@ mod tests;
 
 pub use agreement::{
     create_agreement, get_agreement, get_agreement_count, get_payment_split, has_agreement,
-    sign_agreement, validate_agreement_params,
+    sign_agreement, submit_agreement, validate_agreement_params,
 };
 pub use errors::RentalError;
 pub use storage::DataKey;
@@ -184,6 +184,24 @@ impl Contract {
     ) -> Result<(), RentalError> {
         Self::check_paused(&env)?;
         agreement::sign_agreement(&env, tenant, agreement_id)
+    }
+
+    /// Submit a draft agreement for tenant signature (Draft → Pending).
+    ///
+    /// # Arguments
+    /// * `env` - The environment
+    /// * `landlord` - The address of the landlord submitting
+    /// * `agreement_id` - The identifier of the agreement to submit
+    ///
+    /// # Returns
+    /// * `Result<(), RentalError>` - Ok if submitted, otherwise an error
+    pub fn submit_agreement(
+        env: Env,
+        landlord: Address,
+        agreement_id: String,
+    ) -> Result<(), RentalError> {
+        Self::check_paused(&env)?;
+        agreement::submit_agreement(&env, landlord, agreement_id)
     }
 
     /// Retrieve details of a rental agreement.

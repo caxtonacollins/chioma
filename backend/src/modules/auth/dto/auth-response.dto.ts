@@ -51,11 +51,16 @@ export class MfaRequiredResponseDto {
 }
 
 /** Discriminated union of all possible login response shapes. */
-export type AuthLoginResponseDto = AuthSuccessResponseDto | MfaRequiredResponseDto;
+export type AuthLoginResponseDto =
+  | AuthSuccessResponseDto
+  | MfaRequiredResponseDto;
 
 /** Kept for Swagger decorators and controller return-type annotations. */
 export class AuthResponseDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', nullable: true })
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    nullable: true,
+  })
   accessToken: string | null;
 
   @ApiProperty({
@@ -71,7 +76,10 @@ export class AuthResponseDto {
   @ApiProperty({ example: false, required: false })
   mfaRequired?: boolean;
 
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', required: false })
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    required: false,
+  })
   mfaToken?: string;
 }
 
@@ -79,4 +87,3 @@ export class MessageResponseDto {
   @ApiProperty({ example: 'Operation successful' })
   message: string;
 }
-

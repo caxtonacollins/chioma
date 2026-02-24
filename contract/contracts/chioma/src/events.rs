@@ -40,6 +40,17 @@ pub struct AgreementSigned {
     pub signed_at: u64,
 }
 
+/// Event emitted when an agreement is submitted for signing
+/// Topics: ["agr_submit", landlord: Address, tenant: Address]
+#[contractevent(topics = ["agr_submit"])]
+pub struct AgreementSubmitted {
+    #[topic]
+    pub landlord: Address,
+    #[topic]
+    pub tenant: Address,
+    pub agreement_id: String,
+}
+
 /// Event emitted when the contract configuration is updated
 /// Topics: ["cfg_updated", admin: Address]
 #[contractevent(topics = ["cfg_updated"])]
@@ -104,6 +115,21 @@ pub(crate) fn agreement_signed(
         landlord,
         agreement_id,
         signed_at,
+    }
+    .publish(env);
+}
+
+/// Helper function to emit agreement submitted event
+pub(crate) fn agreement_submitted(
+    env: &Env,
+    agreement_id: String,
+    landlord: Address,
+    tenant: Address,
+) {
+    AgreementSubmitted {
+        landlord,
+        tenant,
+        agreement_id,
     }
     .publish(env);
 }

@@ -1,9 +1,52 @@
-use soroban_sdk::{Address, Env, String};
+use soroban_sdk::{contracttype, symbol_short, Address, Env, Map, String};
 
 use crate::errors::DisputeError;
 use crate::events;
 use crate::storage::DataKey;
 use crate::types::{Arbiter, ContractState, Dispute, DisputeOutcome, Vote};
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum AgreementStatus {
+    Draft,
+    Pending,
+    Active,
+    Completed,
+    Cancelled,
+    Terminated,
+    Disputed,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RentAgreement {
+    pub agreement_id: String,
+    pub landlord: Address,
+    pub tenant: Address,
+    pub agent: Option<Address>,
+    pub monthly_rent: i128,
+    pub security_deposit: i128,
+    pub start_date: u64,
+    pub end_date: u64,
+    pub agent_commission_rate: u32,
+    pub status: AgreementStatus,
+    pub total_rent_paid: i128,
+    pub payment_count: u32,
+    pub signed_at: Option<u64>,
+    pub payment_token: Address,
+    pub next_payment_due: u64,
+    pub payment_history: Map<u32, PaymentSplit>,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PaymentSplit {
+    pub landlord_amount: i128,
+    pub platform_amount: i128,
+    pub token: Address,
+    pub payment_date: u64,
+    pub payer: Address,
+}
 
 pub fn add_arbiter(env: &Env, admin: Address, arbiter: Address) -> Result<(), DisputeError> {
     let state: ContractState = env
@@ -46,12 +89,17 @@ pub fn add_arbiter(env: &Env, admin: Address, arbiter: Address) -> Result<(), Di
 
 pub fn raise_dispute(
     env: &Env,
+    raiser: Address,
     agreement_id: String,
     details_hash: String,
 ) -> Result<(), DisputeError> {
-    if !env.storage().persistent().has(&DataKey::Initialized) {
-        return Err(DisputeError::NotInitialized);
-    }
+    raiser.require_auth();
+
+    let state: ContractState = env
+        .storage()
+        .instance()
+        .get(&DataKey::State)
+        .ok_or(DisputeError::NotInitialized)?;
 
     if details_hash.is_empty() {
         return Err(DisputeError::InvalidDetailsHash);
@@ -60,6 +108,25 @@ pub fn raise_dispute(
     let key = DataKey::Dispute(agreement_id.clone());
     if env.storage().persistent().has(&key) {
         return Err(DisputeError::DisputeAlreadyExists);
+    }
+
+    // Cross-contract call to get agreement from chioma contract
+    let agreement: Option<RentAgreement> = env.invoke_contract(
+        &state.chioma_contract,
+        &symbol_short!("get_agr"),
+        soroban_sdk::vec![env, agreement_id.clone().into()],
+    );
+
+    let agreement = agreement.ok_or(DisputeError::AgreementNotFound)?;
+
+    // Validate agreement is in Active status
+    if agreement.status != AgreementStatus::Active {
+        return Err(DisputeError::InvalidAgreementState);
+    }
+
+    // Validate raiser is either tenant or landlord
+    if raiser != agreement.tenant && raiser != agreement.landlord {
+        return Err(DisputeError::Unauthorized);
     }
 
     let dispute = Dispute {

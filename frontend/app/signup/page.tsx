@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, Lock, User, UserCheck } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/store/authStore';
 import FormInput from '@/components/auth/FormInput';
 
 const signupSchema = z.object({

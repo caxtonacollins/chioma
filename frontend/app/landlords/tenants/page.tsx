@@ -84,6 +84,29 @@ const SortIcon = ({ field, sortField, sortDir }: { field: SortField; sortField: 
   return sortDir === "asc" ? <ChevronUp size={13} className="text-blue-900" /> : <ChevronDown size={13} className="text-blue-900" />;
 };
 
+// ─── Table Header Cell ────────────────────────────────────────────────────────
+
+const ThCell = ({
+  field,
+  label,
+  sortField,
+  sortDir,
+  onSort,
+}: {
+  field: SortField;
+  label: string;
+  sortField: SortField;
+  sortDir: SortDir;
+  onSort: (field: SortField) => void;
+}) => (
+  <th className="px-5 py-3 text-left cursor-pointer select-none group" onClick={() => onSort(field)}>
+    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">
+      {label}
+      <SortIcon field={field} sortField={sortField} sortDir={sortDir} />
+    </div>
+  </th>
+);
+
 // ─── Skeleton Row ─────────────────────────────────────────────────────────────
 
 const SkeletonRow = () => (
@@ -166,15 +189,6 @@ export default function TenantsPage() {
 
   const toggleAll = () =>
     setSelected(s => s.length === paginated.length ? [] : paginated.map(t => t.id));
-
-  const ThCell = ({ field, label }: { field: SortField; label: string }) => (
-    <th className="px-5 py-3 text-left cursor-pointer select-none group" onClick={() => handleSort(field)}>
-      <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">
-        {label}
-        <SortIcon field={field} sortField={sortField} sortDir={sortDir} />
-      </div>
-    </th>
-  );
 
   return (
     <div className="space-y-6">
@@ -263,12 +277,12 @@ export default function TenantsPage() {
                     className="rounded border-slate-300 text-blue-900 focus:ring-blue-900"
                   />
                 </th>
-                <ThCell field="name" label="Tenant" />
-                <ThCell field="property" label="Property" />
-                <ThCell field="leaseStart" label="Lease Start" />
-                <ThCell field="leaseEnd" label="Lease End" />
-                <ThCell field="rentAmount" label="Rent / yr" />
-                <ThCell field="status" label="Status" />
+                <ThCell field="name" label="Tenant" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+                <ThCell field="property" label="Property" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+                <ThCell field="leaseStart" label="Lease Start" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+                <ThCell field="leaseEnd" label="Lease End" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+                <ThCell field="rentAmount" label="Rent / yr" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+                <ThCell field="status" label="Status" sortField={sortField} sortDir={sortDir} onSort={handleSort} />
                 <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Action</th>
               </tr>
             </thead>
