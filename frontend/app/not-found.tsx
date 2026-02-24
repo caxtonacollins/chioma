@@ -4,8 +4,12 @@ export default function NotFound() {
   return (
     <main className="min-h-screen bg-brand-gradient flex items-center justify-center px-6 py-16">
       <section className="w-full max-w-2xl rounded-2xl glass p-8 md:p-12 text-center text-white shadow-card">
-        <p className="text-sm uppercase tracking-[0.25em] text-white/80">Error 404</p>
-        <h1 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">Page Not Found</h1>
+        <p className="text-sm uppercase tracking-[0.25em] text-white/80">
+          Error 404
+        </p>
+        <h1 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
+          Page Not Found
+        </h1>
         <p className="mt-4 text-base md:text-lg text-white/85">
           The page you are looking for does not exist or may have been moved.
         </p>

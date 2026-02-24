@@ -8,7 +8,10 @@ interface SearchFiltersProps {
   setSearchQuery: (query: string) => void;
 }
 
-export default function SearchFilters({ searchQuery, setSearchQuery }: SearchFiltersProps) {
+export default function SearchFilters({
+  searchQuery,
+  setSearchQuery,
+}: SearchFiltersProps) {
   const [selectedFilter, setSelectedFilter] = useState('Property Type');
 
   return (
@@ -34,10 +37,11 @@ export default function SearchFilters({ searchQuery, setSearchQuery }: SearchFil
             </button>
             <button
               onClick={() => setSelectedFilter('Property Type')}
-              className={`px-5 py-2.5 text-sm rounded-full transition-all font-medium backdrop-blur-md shadow-lg border ${selectedFilter === 'Property Type'
-                ? 'bg-brand-blue text-white border-brand-blue/50'
-                : 'border-white/20 text-gray-300 hover:bg-white/10 hover:text-white'
-                }`}
+              className={`px-5 py-2.5 text-sm rounded-full transition-all font-medium backdrop-blur-md shadow-lg border ${
+                selectedFilter === 'Property Type'
+                  ? 'bg-brand-blue text-white border-brand-blue/50'
+                  : 'border-white/20 text-gray-300 hover:bg-white/10 hover:text-white'
+              }`}
             >
               Property Type
             </button>

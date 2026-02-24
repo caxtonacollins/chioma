@@ -32,10 +32,11 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`top-0 left-0 right-0 z-50 transition-all duration-300 sticky ${isScrolled
+      className={`top-0 left-0 right-0 z-50 transition-all duration-300 sticky ${
+        isScrolled
           ? 'bg-white/90 backdrop-blur-xl border-b border-gray-200 py-3 shadow-sm'
           : 'bg-white py-4 sm:py-6 border-b border-gray-100'
-        }`}
+      }`}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
@@ -55,9 +56,10 @@ const Navbar = () => {
                 key={link.name}
                 href={link.href}
                 className={`relative text-sm font-semibold transition-all duration-200
-                  ${active
-                    ? 'text-brand-blue'
-                    : 'text-gray-600 hover:text-gray-900'
+                  ${
+                    active
+                      ? 'text-brand-blue'
+                      : 'text-gray-600 hover:text-gray-900'
                   }
                 `}
               >
@@ -110,9 +112,10 @@ const Navbar = () => {
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`text-lg font-bold w-fit
-                    ${active
-                      ? 'text-brand-blue border-b-2 border-brand-blue pb-1'
-                      : 'text-gray-700 hover:text-brand-blue'
+                    ${
+                      active
+                        ? 'text-brand-blue border-b-2 border-brand-blue pb-1'
+                        : 'text-gray-700 hover:text-brand-blue'
                     }
                   `}
                 >

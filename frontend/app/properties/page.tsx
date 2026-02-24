@@ -10,14 +10,17 @@ import { Plus, Minus, Compass } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
-const PropertiesMap = dynamic(() => import('@/components/properties/PropertiesMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 bg-blue-50 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-blue"></div>
-    </div>
-  ),
-});
+const PropertiesMap = dynamic(
+  () => import('@/components/properties/PropertiesMap'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 bg-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-blue"></div>
+      </div>
+    ),
+  },
+);
 
 export default function PropertyListing() {
   const [searchAsIMove, setSearchAsIMove] = useState(true);
@@ -46,7 +49,7 @@ export default function PropertyListing() {
         'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=400&fit=crop',
       verified: true,
       lat: 40.7128,
-      lng: -74.0060,
+      lng: -74.006,
     },
     {
       id: 2,
@@ -75,7 +78,7 @@ export default function PropertyListing() {
       image:
         'https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=500&h=400&fit=crop',
       verified: false,
-      lat: 35.6620,
+      lat: 35.662,
       lng: 139.7038,
     },
     {
@@ -91,7 +94,7 @@ export default function PropertyListing() {
         'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=400&fit=crop',
       verified: true,
       lat: 25.1124,
-      lng: 55.1390,
+      lng: 55.139,
     },
     {
       id: 5,
@@ -146,9 +149,11 @@ export default function PropertyListing() {
   return (
     <>
       <Navbar />
-      <SearchFilters searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <SearchFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
       <div className="bg-neutral-50 min-h-screen relative">
-
         {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-0">
           {/* Left Sidebar - Listings */}
@@ -214,17 +219,15 @@ export default function PropertyListing() {
                       <PropertyCardSkeleton key={index} />
                     ))}
                   </>
+                ) : // Show actual property cards when loaded
+                filteredProperties.length > 0 ? (
+                  filteredProperties.map((property) => (
+                    <PropertyCard key={property.id} property={property} />
+                  ))
                 ) : (
-                  // Show actual property cards when loaded
-                  filteredProperties.length > 0 ? (
-                    filteredProperties.map((property) => (
-                      <PropertyCard key={property.id} property={property} />
-                    ))
-                  ) : (
-                    <div className="col-span-1 sm:col-span-2 text-center py-12 text-gray-500">
-                      No properties found matching your search.
-                    </div>
-                  )
+                  <div className="col-span-1 sm:col-span-2 text-center py-12 text-gray-500">
+                    No properties found matching your search.
+                  </div>
                 )}
               </div>
 

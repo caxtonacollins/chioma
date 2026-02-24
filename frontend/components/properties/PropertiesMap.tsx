@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import L from 'leaflet';
 
 // Fix for default Leaflet marker icons with Next.js/Webpack
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 // Custom styling for the markers instead of default leaflet pins
@@ -36,7 +37,13 @@ interface PropertiesMapProps {
   properties: Property[];
 }
 
-function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }) {
+function ChangeView({
+  center,
+  zoom,
+}: {
+  center: [number, number];
+  zoom: number;
+}) {
   const map = useMap();
   useEffect(() => {
     map.flyTo(center, zoom, { duration: 1.5, animate: true });
@@ -45,15 +52,19 @@ function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }
 }
 
 export default function PropertiesMap({ properties }: PropertiesMapProps) {
-  const validProperties = properties.filter((p) => p.lat !== undefined && p.lng !== undefined);
+  const validProperties = properties.filter(
+    (p) => p.lat !== undefined && p.lng !== undefined,
+  );
 
   // Center on first valid property or default to global view
-  const center: [number, number] = validProperties.length > 0
-    ? [validProperties[0].lat!, validProperties[0].lng!]
-    : [20, 0];
+  const center: [number, number] =
+    validProperties.length > 0
+      ? [validProperties[0].lat!, validProperties[0].lng!]
+      : [20, 0];
 
   // Dynamic zoom based on results
-  const zoom = validProperties.length === 1 ? 12 : validProperties.length > 1 ? 2 : 2;
+  const zoom =
+    validProperties.length === 1 ? 12 : validProperties.length > 1 ? 2 : 2;
 
   return (
     <div className="absolute inset-0 z-0">
@@ -67,7 +78,7 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
         <ChangeView center={center} zoom={zoom} />
         {/* Sleek light base map perfectly matching the app theme */}
         <TileLayer
-          attribution='&copy; OpenStreetMap'
+          attribution="&copy; OpenStreetMap"
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
@@ -79,8 +90,13 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
           >
             <Popup className="rounded-xl overflow-hidden shadow-2xl border-none">
               <div className="p-1">
-                <div className="font-bold text-gray-900 mb-1">{property.title}</div>
-                <div className="text-brand-blue text-lg font-black">{property.price} <span className="text-gray-500 text-xs font-medium">/mo</span></div>
+                <div className="font-bold text-gray-900 mb-1">
+                  {property.title}
+                </div>
+                <div className="text-brand-blue text-lg font-black">
+                  {property.price}{' '}
+                  <span className="text-gray-500 text-xs font-medium">/mo</span>
+                </div>
               </div>
             </Popup>
           </Marker>

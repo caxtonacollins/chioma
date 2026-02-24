@@ -145,9 +145,10 @@ export default function Topbar({ pageTitle }: { pageTitle: string }) {
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded transition
-                      ${isActive
-                        ? 'bg-blue-100/70 text-[#1e40af] font-semibold'
-                        : 'hover:bg-gray-100 text-gray-700'
+                      ${
+                        isActive
+                          ? 'bg-blue-100/70 text-[#1e40af] font-semibold'
+                          : 'hover:bg-gray-100 text-gray-700'
                       }
                     `}
                   >

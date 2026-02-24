@@ -34,11 +34,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         {/* Status Badge */}
         {property.verified ? (
           <div className="absolute top-4 left-4 bg-green-600/90 backdrop-blur-md text-white px-3 py-1 rounded-full flex items-center gap-1.5 text-xs sm:text-sm font-semibold shadow-lg">
-            <svg
-              className="w-4 h-4"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -106,9 +102,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <div className="w-8 h-8 rounded-full bg-linear-to-tr from-brand-blue to-purple-500 shrink-0 shadow-sm" />
           <p className="text-sm text-gray-500 truncate">
             Managed by{' '}
-            <span className="font-bold text-gray-900">
-              {property.manager}
-            </span>
+            <span className="font-bold text-gray-900">{property.manager}</span>
           </p>
         </div>
       </div>
