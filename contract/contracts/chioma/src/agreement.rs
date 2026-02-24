@@ -14,6 +14,7 @@ const TTL_BUMP: u32 = 500000;
 /// Ensures monthly_rent is strictly positive (i128 > 0) to prevent logical errors
 /// in payment calculations and splits.
 pub fn validate_agreement_params(
+    env: &Env,
     monthly_rent: &i128,
     security_deposit: &i128,
     start_date: &u64,
@@ -25,6 +26,12 @@ pub fn validate_agreement_params(
     }
 
     if *start_date >= *end_date {
+        return Err(RentalError::InvalidDate);
+    }
+
+    let now = env.ledger().timestamp();
+    let grace_period: u64 = 86400; // 1 day in seconds
+    if *start_date < now.saturating_sub(grace_period) {
         return Err(RentalError::InvalidDate);
     }
 
@@ -55,6 +62,7 @@ pub fn create_agreement(
 
     // Validate inputs
     validate_agreement_params(
+        env,
         &monthly_rent,
         &security_deposit,
         &start_date,
