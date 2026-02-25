@@ -63,6 +63,7 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.17.2",
     "pinata": "^2.5.3",
+    "prom-client": "^15.1.0",
     "qrcode": "^1.5.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -74,7 +75,9 @@
     "tweetnacl": "^1.0.3",
     "typeorm": "^0.3.28",
     "typeorm-naming-strategies": "^4.1.0",
-    "validator": "^13.11.0"
+    "validator": "^13.11.0",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
