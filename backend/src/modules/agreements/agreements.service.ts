@@ -22,6 +22,7 @@ import {
   AuditStatus,
 } from '../audit/entities/audit-log.entity';
 import { AuditLog } from '../audit/decorators/audit-log.decorator';
+import { ReviewPromptService } from '../reviews/review-prompt.service';
 
 @Injectable()
 export class AgreementsService {
@@ -31,6 +32,7 @@ export class AgreementsService {
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
     private readonly auditService: AuditService,
+    private readonly reviewPromptService: ReviewPromptService,
   ) {}
 
   /**
@@ -201,6 +203,14 @@ export class AgreementsService {
     }
 
     const updatedAgreement = await this.agreementRepository.save(agreement);
+
+    // Trigger review prompt if expired
+    if (
+      oldValues.status !== AgreementStatus.EXPIRED &&
+      updatedAgreement.status === AgreementStatus.EXPIRED
+    ) {
+      await this.reviewPromptService.promptForLeaseReview(id);
+    }
 
     return updatedAgreement;
   }

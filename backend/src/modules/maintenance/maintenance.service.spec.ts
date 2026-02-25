@@ -6,6 +6,7 @@ import {
   MaintenanceStatus,
 } from './maintenance-request.entity';
 import { Repository } from 'typeorm';
+import { ReviewPromptService } from '../reviews/review-prompt.service';
 
 describe('MaintenanceService', () => {
   let service: MaintenanceService;
@@ -17,12 +18,13 @@ describe('MaintenanceService', () => {
     findOne: jest.fn().mockResolvedValue({ title: 'Test Property' }),
   };
   const mockUsersService = { findById: jest.fn().mockResolvedValue({}) };
+  const mockReviewPromptService = { promptForMaintenanceReview: jest.fn() };
 
   beforeEach(async () => {
     const { StorageService } = require('../storage/storage.service');
     const {
       NotificationsService,
-    } = require('../notifications/notifications.service');
+      } = require('../notifications/notifications.service');
     const { PropertiesService } = require('../properties/properties.service');
     const { UsersService } = require('../users/users.service');
 
@@ -37,6 +39,7 @@ describe('MaintenanceService', () => {
         { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: PropertiesService, useValue: mockPropertiesService },
         { provide: UsersService, useValue: mockUsersService },
+        { provide: ReviewPromptService, useValue: mockReviewPromptService },
       ],
     }).compile();
     service = module.get<MaintenanceService>(MaintenanceService);
