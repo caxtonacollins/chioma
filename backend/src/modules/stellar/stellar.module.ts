@@ -16,6 +16,7 @@ import { AnchorService } from './services/anchor.service';
 import { ChiomaContractService } from './services/chioma-contract.service';
 import { BlockchainEventService } from './services/blockchain-event.service';
 import { EscrowContractService } from './services/escrow-contract.service';
+import { DisputeContractService } from './services/dispute-contract.service';
 import stellarConfig from './config/stellar.config';
 
 @Module({
@@ -39,6 +40,7 @@ import stellarConfig from './config/stellar.config';
     ChiomaContractService,
     BlockchainEventService,
     EscrowContractService,
+    DisputeContractService,
   ],
   exports: [
     StellarService,
@@ -47,6 +49,7 @@ import stellarConfig from './config/stellar.config';
     ChiomaContractService,
     BlockchainEventService,
     EscrowContractService,
+    DisputeContractService,
   ],
 })
 export class StellarModule {}
