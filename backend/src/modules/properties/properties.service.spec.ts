@@ -16,6 +16,7 @@ import { PropertyImage } from './entities/property-image.entity';
 import { PropertyAmenity } from './entities/property-amenity.entity';
 import { RentalUnit } from './entities/rental-unit.entity';
 import { User, UserRole, AuthMethod } from '../users/entities/user.entity';
+import { KycStatus } from '../kyc/kyc.entity';
 
 describe('PropertiesService', () => {
   let service: PropertiesService;
@@ -42,6 +43,7 @@ describe('PropertiesService', () => {
     refreshToken: null,
     createdAt: new Date(),
     updatedAt: new Date(),
+    kycStatus: KycStatus.PENDING,
   };
 
   const mockAdmin: User = {

@@ -9,6 +9,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { User, UserRole, AuthMethod } from './entities/user.entity';
+import { KycStatus } from '../kyc/kyc.entity';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -36,6 +37,7 @@ describe('UsersService', () => {
     refreshToken: null,
     createdAt: new Date(),
     updatedAt: new Date(),
+    kycStatus: KycStatus.PENDING,
   };
 
   const mockUserRepository = {

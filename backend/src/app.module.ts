@@ -120,6 +120,8 @@ import { StorageModule } from './modules/storage/storage.module';
     StorageModule,
     // Maintenance module
     require('./modules/maintenance/maintenance.module').MaintenanceModule,
+    // KYC module
+    require('./modules/kyc/kyc.module').KycModule,
   ],
   controllers: [AppController],
   providers: [

@@ -13,8 +13,8 @@ mod types;
 mod tests;
 
 pub use agreement::{
-    create_agreement, get_agreement, get_agreement_count, get_payment_split, has_agreement,
-    sign_agreement, submit_agreement, validate_agreement_params,
+    cancel_agreement, create_agreement, get_agreement, get_agreement_count, get_payment_split,
+    has_agreement, sign_agreement, submit_agreement, validate_agreement_params,
 };
 pub use errors::RentalError;
 pub use storage::DataKey;
@@ -202,6 +202,24 @@ impl Contract {
     ) -> Result<(), RentalError> {
         Self::check_paused(&env)?;
         agreement::submit_agreement(&env, landlord, agreement_id)
+    }
+
+    /// Cancel an agreement while in Draft or Pending state.
+    ///
+    /// # Arguments
+    /// * `env` - The environment
+    /// * `caller` - The address of the caller (must be landlord)
+    /// * `agreement_id` - The identifier of the agreement to cancel
+    ///
+    /// # Returns
+    /// * `Result<(), RentalError>` - Ok if cancelled, otherwise an error
+    pub fn cancel_agreement(
+        env: Env,
+        caller: Address,
+        agreement_id: String,
+    ) -> Result<(), RentalError> {
+        Self::check_paused(&env)?;
+        agreement::cancel_agreement(&env, caller, agreement_id)
     }
 
     /// Retrieve details of a rental agreement.

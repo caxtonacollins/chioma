@@ -1,6 +1,6 @@
 //! Core escrow lifecycle logic: creation, funding, approvals, and release.
 //! Implements checks-effects-interactions pattern for reentrancy safety.
-use soroban_sdk::{contract, contractimpl, token, xdr::ToXdr, Address, BytesN, Env, Vec};
+use soroban_sdk::{contract, contractimpl, token, xdr::ToXdr, Address, BytesN, Env};
 
 use crate::dispute::DisputeHandler;
 
@@ -161,17 +161,16 @@ impl EscrowContract {
             return Err(EscrowError::InvalidApprovalTarget);
         }
 
-        // Get existing approvals
-        let approvals = EscrowStorage::get_approvals(&env, &escrow_id);
-
-        // Check for duplicate approval from same signer to same target
-        for approval in &approvals {
-            if approval.signer == caller && approval.release_to == release_to {
-                return Err(EscrowError::AlreadySigned);
-            }
+        // Check for duplicate approval using O(1) storage lookup
+        if EscrowStorage::has_signer_approved(&env, &escrow_id, &caller, &release_to) {
+            return Err(EscrowError::AlreadySigned);
         }
 
-        // EFFECTS: Add the new approval
+        // EFFECTS: Record the approval flag and increment the counter
+        EscrowStorage::set_signer_approved(&env, &escrow_id, &caller, &release_to);
+        EscrowStorage::increment_approval_count(&env, &escrow_id, &release_to);
+
+        // Also persist the approval record for audit trail
         let new_approval = ReleaseApproval {
             signer: caller.clone(),
             release_to: release_to.clone(),
@@ -179,37 +178,12 @@ impl EscrowContract {
         };
         EscrowStorage::add_approval(&env, &escrow_id, new_approval);
 
-        // Count unique signers approving this release target
-        let mut unique_signers: Vec<Address> = Vec::new(&env);
-        for approval in &approvals {
-            if approval.release_to == release_to {
-                let mut found = false;
-                for signer in &unique_signers {
-                    if signer == approval.signer {
-                        found = true;
-                        break;
-                    }
-                }
-                if !found {
-                    unique_signers.push_back(approval.signer.clone());
-                }
-            }
-        }
-
-        // Add current caller to unique signers count (since we just added their approval)
-        let mut caller_already_counted = false;
-        for signer in &unique_signers {
-            if signer == caller {
-                caller_already_counted = true;
-                break;
-            }
-        }
-        if !caller_already_counted {
-            unique_signers.push_back(caller.clone());
-        }
+        // Read the updated count via O(1) lookup
+        let approval_count =
+            EscrowStorage::get_approval_count_for_target(&env, &escrow_id, &release_to);
 
         // If 2 or more unique signers approve, execute release
-        if unique_signers.len() >= 2 {
+        if approval_count >= 2 {
             let mut escrow_to_update =
                 EscrowStorage::get(&env, &escrow_id).ok_or(EscrowError::EscrowNotFound)?;
 
@@ -217,8 +191,15 @@ impl EscrowContract {
             escrow_to_update.status = EscrowStatus::Released;
             EscrowStorage::save(&env, &escrow_to_update);
 
-            // Clear approvals after execution
+            // Clear approvals and counters after execution
             EscrowStorage::clear_approvals(&env, &escrow_id);
+            let targets = [escrow.beneficiary.clone(), escrow.depositor.clone()];
+            let signers = [
+                escrow.depositor.clone(),
+                escrow.beneficiary.clone(),
+                escrow.arbiter.clone(),
+            ];
+            EscrowStorage::clear_approval_counts(&env, &escrow_id, &targets, &signers);
 
             // INTERACTIONS: Token transfer from escrow contract to release target
             let token_client = token::Client::new(&env, &escrow.token);
@@ -256,29 +237,18 @@ impl EscrowContract {
 
     /// Get approval count for a specific release target.
     /// Returns number of unique signers approving release to a specific address.
+    /// Uses O(1) dedicated counter storage instead of iterating the approvals list.
     pub fn get_approval_count(
         env: Env,
         escrow_id: BytesN<32>,
         release_to: Address,
     ) -> Result<u32, EscrowError> {
-        let approvals = EscrowStorage::get_approvals(&env, &escrow_id);
-
-        let mut unique_signers: Vec<Address> = Vec::new(&env);
-        for approval in &approvals {
-            if approval.release_to == release_to {
-                let mut found = false;
-                for signer in &unique_signers {
-                    if signer == approval.signer {
-                        found = true;
-                        break;
-                    }
-                }
-                if !found {
-                    unique_signers.push_back(approval.signer.clone());
-                }
-            }
-        }
-
-        Ok(unique_signers.len())
+        // Verify escrow exists
+        EscrowStorage::get(&env, &escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+        Ok(EscrowStorage::get_approval_count_for_target(
+            &env,
+            &escrow_id,
+            &release_to,
+        ))
     }
 }

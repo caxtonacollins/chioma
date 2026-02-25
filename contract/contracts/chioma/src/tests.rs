@@ -818,6 +818,117 @@ fn test_submit_agreement_invalid_state() {
 }
 
 #[test]
+fn test_cancel_agreement_success_draft() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    let agreement_id = String::from_str(&env, "CANCEL_DRAFT");
+
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &100,
+        &200,
+        &0,
+        &Address::generate(&env),
+    );
+
+    client.cancel_agreement(&landlord, &agreement_id);
+
+    let agreement = client.get_agreement(&agreement_id).unwrap();
+    assert_eq!(agreement.status, AgreementStatus::Cancelled);
+}
+
+#[test]
+fn test_cancel_agreement_success_pending() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    let agreement_id = "CANCEL_PENDING";
+    create_pending_agreement(&env, &client, agreement_id, &tenant, &landlord);
+
+    client.cancel_agreement(&landlord, &String::from_str(&env, agreement_id));
+
+    let agreement = client
+        .get_agreement(&String::from_str(&env, agreement_id))
+        .unwrap();
+    assert_eq!(agreement.status, AgreementStatus::Cancelled);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #13)")]
+fn test_cancel_agreement_not_found() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let landlord = Address::generate(&env);
+
+    client.cancel_agreement(&landlord, &String::from_str(&env, "NONEXISTENT"));
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #18)")]
+fn test_cancel_agreement_unauthorized() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+    let non_landlord = Address::generate(&env);
+
+    let agreement_id = String::from_str(&env, "CANCEL_UNAUTH");
+
+    client.create_agreement(
+        &agreement_id,
+        &landlord,
+        &tenant,
+        &None,
+        &1000,
+        &2000,
+        &100,
+        &200,
+        &0,
+        &Address::generate(&env),
+    );
+
+    client.cancel_agreement(&non_landlord, &agreement_id);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #15)")]
+fn test_cancel_agreement_invalid_state() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let client = create_contract(&env);
+    let tenant = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    let agreement_id = "CANCEL_INVALID";
+    create_pending_agreement(&env, &client, agreement_id, &tenant, &landlord);
+
+    client.sign_agreement(&tenant, &String::from_str(&env, agreement_id));
+
+    // Status is now Active
+
+    client.cancel_agreement(&landlord, &String::from_str(&env, agreement_id));
+}
+
+#[test]
 fn test_get_agreement() {
     let env = Env::default();
     env.mock_all_auths();

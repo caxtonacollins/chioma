@@ -4,14 +4,13 @@ import {
   BadRequestException,
   UnauthorizedException,
   Logger,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { User } from './entities/user.entity';
+import { KycStatus } from '../kyc/kyc.entity'; // ✅ moved here with the other imports
 import {
   UpdateProfileDto,
   ChangeEmailDto,
@@ -50,12 +49,9 @@ export class UsersService {
     updateProfileDto: UpdateProfileDto,
   ): Promise<User> {
     const user = await this.findById(userId);
-
     Object.assign(user, updateProfileDto);
-
     const updatedUser = await this.userRepository.save(user);
     this.logger.log(`Profile updated for user: ${user.email}`);
-
     return updatedUser;
   }
 
@@ -113,10 +109,6 @@ export class UsersService {
       );
     }
 
-    // Validate new password against policy (if PasswordPolicyService is available)
-    // Note: This creates a circular dependency, so we'll validate in the controller
-    // or use a shared validation utility
-
     const hashedPassword = await bcrypt.hash(
       changePasswordDto.newPassword,
       SALT_ROUNDS,
@@ -147,11 +139,8 @@ export class UsersService {
 
   async deleteAccount(userId: string): Promise<{ message: string }> {
     const user = await this.findById(userId);
-
     await this.userRepository.softDelete(userId);
-
     this.logger.log(`Account soft-deleted for user: ${user.email}`);
-
     return { message: 'Account deleted successfully' };
   }
 
@@ -160,31 +149,21 @@ export class UsersService {
   ): Promise<{ message: string }> {
     const { email, password } = userRestoreDto;
 
-    // Find the user including soft-deleted ones
     const user = await this.userRepository.findOne({
       where: { email: email.toLowerCase() },
       withDeleted: true,
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.deletedAt) {
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.deletedAt)
       throw new BadRequestException('Account is not deleted');
-    }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials');
-    }
 
-    // Restore the account
     await this.userRepository.restore(user.id);
-    await this.userRepository.update(user.id, {
-      isActive: true,
-    });
+    await this.userRepository.update(user.id, { isActive: true });
 
     this.logger.log(`Account restored for user: ${user.email}`);
 
@@ -193,22 +172,24 @@ export class UsersService {
 
   async hardDeleteAccount(userId: string): Promise<{ message: string }> {
     const user = await this.findById(userId, true);
-
     await this.userRepository.delete(userId);
-
     this.logger.log(`Account permanently deleted for user: ${user.email}`);
-
     return { message: 'Account permanently deleted' };
   }
 
   async getUserActivity(userId: string): Promise<any> {
     const user = await this.findById(userId);
-
     return {
       lastLogin: user.lastLoginAt,
       accountCreated: user.createdAt,
       emailVerified: user.emailVerified,
       isActive: user.isActive,
     };
+  }
+
+  // ✅ moved inside the class
+  async setKycStatus(userId: string, status: KycStatus): Promise<void> {
+    await this.userRepository.update(userId, { kycStatus: status });
+    this.logger.log(`KYC status updated for user ${userId}: ${status}`);
   }
 }

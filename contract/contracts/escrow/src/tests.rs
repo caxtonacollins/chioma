@@ -184,3 +184,63 @@ fn test_unique_escrow_ids() {
     assert_eq!(escrow1.amount, 1000);
     assert_eq!(escrow2.amount, 1000);
 }
+
+#[test]
+fn test_duplicate_approval_rejected() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let (client, depositor, beneficiary, arbiter, token_address) = setup_test(&env);
+    let amount = 1000i128;
+
+    let escrow_id = client.create(&depositor, &beneficiary, &arbiter, &amount, &token_address);
+
+    let token_admin = TokenAdminClient::new(&env, &token_address);
+    token_admin.mint(&depositor, &amount);
+    client.fund_escrow(&escrow_id, &depositor);
+
+    // First approval should succeed
+    client.approve_release(&escrow_id, &depositor, &beneficiary);
+    assert_eq!(client.get_approval_count(&escrow_id, &beneficiary), 1);
+
+    // Duplicate approval from same signer to same target should fail
+    let result = client.try_approve_release(&escrow_id, &depositor, &beneficiary);
+    assert!(result.is_err());
+
+    // Count should still be 1
+    assert_eq!(client.get_approval_count(&escrow_id, &beneficiary), 1);
+}
+
+#[test]
+fn test_approval_count_tracks_per_target() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let (client, depositor, beneficiary, arbiter, token_address) = setup_test(&env);
+    let amount = 1000i128;
+
+    let escrow_id = client.create(&depositor, &beneficiary, &arbiter, &amount, &token_address);
+
+    let token_admin = TokenAdminClient::new(&env, &token_address);
+    token_admin.mint(&depositor, &amount);
+    client.fund_escrow(&escrow_id, &depositor);
+
+    // Depositor approves release to beneficiary
+    client.approve_release(&escrow_id, &depositor, &beneficiary);
+    assert_eq!(client.get_approval_count(&escrow_id, &beneficiary), 1);
+    assert_eq!(client.get_approval_count(&escrow_id, &depositor), 0);
+
+    // Beneficiary approves release to depositor (different target)
+    client.approve_release(&escrow_id, &beneficiary, &depositor);
+    assert_eq!(client.get_approval_count(&escrow_id, &beneficiary), 1);
+    assert_eq!(client.get_approval_count(&escrow_id, &depositor), 1);
+
+    // Arbiter approves release to beneficiary -> triggers release
+    client.approve_release(&escrow_id, &arbiter, &beneficiary);
+
+    let escrow = client.get_escrow(&escrow_id);
+    assert_eq!(escrow.status, EscrowStatus::Released);
+
+    let token_client = TokenClient::new(&env, &token_address);
+    assert_eq!(token_client.balance(&beneficiary), amount);
+}

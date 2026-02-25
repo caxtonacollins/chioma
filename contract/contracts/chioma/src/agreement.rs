@@ -230,6 +230,46 @@ pub fn submit_agreement(
     Ok(())
 }
 
+/// Cancel an agreement while in Draft or Pending state
+pub fn cancel_agreement(
+    env: &Env,
+    caller: Address,
+    agreement_id: String,
+) -> Result<(), RentalError> {
+    caller.require_auth();
+
+    let mut agreement: RentAgreement = env
+        .storage()
+        .persistent()
+        .get(&DataKey::Agreement(agreement_id.clone()))
+        .ok_or(RentalError::AgreementNotFound)?;
+
+    // Only landlord can cancel
+    if agreement.landlord != caller {
+        return Err(RentalError::Unauthorized);
+    }
+
+    // Only in Draft or Pending states
+    if agreement.status != AgreementStatus::Draft && agreement.status != AgreementStatus::Pending {
+        return Err(RentalError::InvalidState);
+    }
+
+    agreement.status = AgreementStatus::Cancelled;
+
+    env.storage()
+        .persistent()
+        .set(&DataKey::Agreement(agreement_id.clone()), &agreement);
+    env.storage().persistent().extend_ttl(
+        &DataKey::Agreement(agreement_id.clone()),
+        TTL_THRESHOLD,
+        TTL_BUMP,
+    );
+
+    events::agreement_cancelled(env, agreement_id, caller, agreement.tenant.clone());
+
+    Ok(())
+}
+
 /// Retrieve a rent agreement by its unique identifier
 pub fn get_agreement(env: &Env, agreement_id: String) -> Option<RentAgreement> {
     env.storage()
