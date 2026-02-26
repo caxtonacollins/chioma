@@ -47,6 +47,9 @@ jobs:
       - name: Install dependencies
         run: cd backend && pnpm install --frozen-lockfile
 
+      - name: Run pnpm audit (high severity)
+        run: cd backend && pnpm audit --audit-level=high
+
       - name: Run ESLint
         run: cd backend && pnpm run lint
 
@@ -152,9 +155,13 @@ jobs:
         continue-on-error: true
 
       - name: Run API and integration E2E tests
-        run: cd backend && pnpm run test:e2e -- --testPathPattern="$JEST_E2E_PATTERN"
+        run: >
+          cd backend && pnpm run test:e2e --
+          test/api-docs.e2e-spec.ts
+          test/api-contract.e2e-spec.ts
+          test/integration.e2e-spec.ts
+          test/performance.e2e-spec.ts
         env:
-          JEST_E2E_PATTERN: "test/(api-docs|api-contract|integration|performance)\\.e2e-spec\\.ts$"
           NODE_ENV: test
           JWT_SECRET: "e2e-test-dummy-secret-not-for-production"
           SECURITY_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"

@@ -41,10 +41,15 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   },
+  "overrides": {
+    "minimatch": "9.0.6",
+    "next": "16.1.5"
+  },
   "pnpm": {
     "overrides": {
       "minimatch": "9.0.6",
-      "ajv": "6.14.0"
+      "ajv": "6.14.0",
+      "next": "16.1.5"
     }
   }
 }
