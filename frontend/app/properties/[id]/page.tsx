@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import ImageGallery from '@/components/properties/ImageGallery';
-import AmenitiesList, { Amenity } from '@/components/properties/AmenitiesList';
 import { MapPin, User, ShieldCheck } from 'lucide-react';
-import Navbar from '@/components/Properties-navbar';
+import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import AmenitiesList, {
+  type Amenity,
+} from '@/components/properties/AmenitiesList';
 import { ReviewList } from '@/components/reviews/ReviewList';
 import type { Review } from '@/components/reviews/ReviewCard';
 import type { RatingStats } from '@/components/reviews/RatingSummary';
@@ -175,9 +178,12 @@ export default async function PropertyDetailsPage({
 
   return (
     <>
-      <Navbar />
+      <Navbar theme="light" />
       <main className="min-h-screen bg-white pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+          {/* Breadcrumbs */}
+          <Breadcrumbs className="mb-8" />
+
           {/* Header section with title, location, gallery */}
           <div className="mb-8">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-sans text-gray-900 mb-4 tracking-tight">
