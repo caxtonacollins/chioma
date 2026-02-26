@@ -20,7 +20,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "ci": "pnpm run lint && npx prettier --check \"src/**/*.ts\" \"test/**/*.ts\" && pnpm exec tsc --noEmit && pnpm run test && pnpm run test:cov",
-    "openapi:generate": "ts-node -r tsconfig-paths/register scripts/generate-openapi.ts",
+    "openapi:generate": "OPENAPI_GENERATE=true ts-node -r tsconfig-paths/register scripts/generate-openapi.ts",
     "perf": "node scripts/performance-benchmark.mjs",
     "sdk:generate": "node scripts/sdk-generate.mjs",
     "typeorm": "typeorm-ts-node-commonjs",

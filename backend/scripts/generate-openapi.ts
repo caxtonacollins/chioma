@@ -1,8 +1,12 @@
 /**
  * Generate static OpenAPI 3.0 JSON spec from the NestJS app.
- * Usage: npx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts
+ * Usage: OPENAPI_GENERATE=true npx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts
  * Output: openapi.json (or path from OPENAPI_OUTPUT env)
  */
+// Ensure global crypto for Node 18 (TypeORM uses crypto.randomUUID())
+if (typeof globalThis.crypto === 'undefined') {
+  (globalThis as any).crypto = require('crypto');
+}
 import { NestFactory } from '@nestjs/core';
 import { VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -67,7 +71,8 @@ async function generate() {
   console.log('OpenAPI spec written to', outputPath);
 }
 
-generate().catch((err) => {
-  console.error(err);
+generate().catch((err: Error) => {
+  console.error('OpenAPI generation failed:', err?.message ?? err);
+  if (err?.stack) console.error(err.stack);
   process.exit(1);
 });

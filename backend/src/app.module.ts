@@ -19,7 +19,6 @@ import { StellarModule } from './modules/stellar/stellar.module';
 import { DisputesModule } from './modules/disputes/disputes.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { HealthModule } from './health/health.module';
 import { PaymentModule } from './modules/payments/payment.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { SecurityModule } from './modules/security/security.module';
@@ -119,7 +118,10 @@ import { JobQueueService } from './common/services/job-queue.service';
     StellarModule,
     DisputesModule,
     MonitoringModule,
-    HealthModule,
+    // Load HealthModule only when not generating OpenAPI (avoids loading broken @nestjs/terminus in script)
+    ...(process.env.OPENAPI_GENERATE !== 'true'
+      ? [require('./health/health.module').HealthModule]
+      : []),
     PaymentModule,
     NotificationsModule,
     ProfileModule,
