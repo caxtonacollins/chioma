@@ -35,6 +35,8 @@ import { StorageModule } from './modules/storage/storage.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { DeveloperModule } from './modules/developer/developer.module';
+import { SearchModule } from './modules/search/search.module';
+import { JobQueueService } from './common/services/job-queue.service';
 
 @Module({
   imports: [
@@ -126,6 +128,7 @@ import { DeveloperModule } from './modules/developer/developer.module';
     ReviewsModule,
     FeedbackModule,
     DeveloperModule,
+    SearchModule,
     // Maintenance module
     require('./modules/maintenance/maintenance.module').MaintenanceModule,
     // KYC module
@@ -134,6 +137,7 @@ import { DeveloperModule } from './modules/developer/developer.module';
   controllers: [AppController],
   providers: [
     AppService,
+    JobQueueService,
     {
       provide: 'APP_PIPE',
       useClass: ValidationPipe,

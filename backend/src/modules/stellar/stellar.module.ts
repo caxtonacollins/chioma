@@ -11,6 +11,8 @@ import { AnchorTransaction } from '../transactions/entities/anchor-transaction.e
 import { SupportedCurrency } from '../transactions/entities/supported-currency.entity';
 import { StellarController } from './controllers/stellar.controller';
 import { AnchorController } from './controllers/anchor.controller';
+import { AgentRegistryController } from './controllers/agent-registry.controller';
+import { AgentRegistryService } from './services/agent-registry.service';
 import { StellarService } from './services/stellar.service';
 import { EncryptionService } from './services/encryption.service';
 import { AnchorService } from './services/anchor.service';
@@ -36,7 +38,7 @@ import stellarConfig from './config/stellar.config';
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
   ],
-  controllers: [StellarController, AnchorController],
+  controllers: [StellarController, AnchorController, AgentRegistryController],
   providers: [
     StellarService,
     EncryptionService,
@@ -47,6 +49,7 @@ import stellarConfig from './config/stellar.config';
     DisputeContractService,
     RentObligationNftService,
     NftEventProcessor,
+    AgentRegistryService,
   ],
   exports: [
     StellarService,
@@ -58,6 +61,7 @@ import stellarConfig from './config/stellar.config';
     DisputeContractService,
     RentObligationNftService,
     NftEventProcessor,
+    AgentRegistryService,
   ],
 })
 export class StellarModule {}
