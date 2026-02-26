@@ -1,30 +1,73 @@
 use crate::Config;
 use soroban_sdk::{contractevent, Address, Env, String};
 
-#[contractevent]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AgreementCreatedEvent {
-    pub agreement_id: String,
+/// Event emitted when the contract is initialized
+/// Topics: ["initialized", admin: Address]
+#[contractevent(topics = ["initialized"])]
+pub struct ContractInitialized {
+    #[topic]
+    pub admin: Address,
+    pub fee_bps: u32,
+    pub fee_collector: Address,
+    pub paused: bool,
 }
 
-#[contractevent]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AgreementSigned {
-    pub agreement_id: String,
-    pub landlord: Address,
+/// Event emitted when an agreement is created
+/// Topics: ["agr_created", tenant: Address, landlord: Address]
+#[contractevent(topics = ["agr_created"])]
+pub struct AgreementCreated {
+    #[topic]
     pub tenant: Address,
+    #[topic]
+    pub landlord: Address,
+    pub agreement_id: String,
+    pub monthly_rent: i128,
+    pub security_deposit: i128,
+    pub start_date: u64,
+    pub end_date: u64,
+    pub agent: Option<Address>,
+}
+
+/// Event emitted when an agreement is signed
+/// Topics: ["agr_signed", tenant: Address, landlord: Address]
+#[contractevent(topics = ["agr_signed"])]
+pub struct AgreementSigned {
+    #[topic]
+    pub tenant: Address,
+    #[topic]
+    pub landlord: Address,
+    pub agreement_id: String,
     pub signed_at: u64,
 }
 
-#[contractevent]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ContractInitialized {
-    pub admin: Address,
+/// Event emitted when an agreement is submitted for signing
+/// Topics: ["agr_submit", landlord: Address, tenant: Address]
+#[contractevent(topics = ["agr_submit"])]
+pub struct AgreementSubmitted {
+    #[topic]
+    pub landlord: Address,
+    #[topic]
+    pub tenant: Address,
+    pub agreement_id: String,
 }
 
-#[contractevent]
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Event emitted when an agreement is cancelled
+/// Topics: ["agr_cancel", landlord: Address, tenant: Address]
+#[contractevent(topics = ["agr_cancel"])]
+pub struct AgreementCancelled {
+    #[topic]
+    pub landlord: Address,
+    #[topic]
+    pub tenant: Address,
+    pub agreement_id: String,
+}
+
+/// Event emitted when the contract configuration is updated
+/// Topics: ["cfg_updated", admin: Address]
+#[contractevent(topics = ["cfg_updated"])]
 pub struct ConfigUpdated {
+    #[topic]
+    pub admin: Address,
     pub old_fee_bps: u32,
     pub new_fee_bps: u32,
     pub old_fee_collector: Address,
@@ -33,12 +76,94 @@ pub struct ConfigUpdated {
     pub new_paused: bool,
 }
 
-pub(crate) fn contract_initialized(env: &Env, admin: Address) {
-    ContractInitialized { admin }.publish(env);
+/// Helper function to emit contract initialized event
+pub(crate) fn contract_initialized(env: &Env, admin: Address, config: Config) {
+    ContractInitialized {
+        admin,
+        fee_bps: config.fee_bps,
+        fee_collector: config.fee_collector,
+        paused: config.paused,
+    }
+    .publish(env);
 }
 
-pub(crate) fn config_updated(env: &Env, old_config: Config, new_config: Config) {
+/// Helper function to emit agreement created event
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn agreement_created(
+    env: &Env,
+    agreement_id: String,
+    tenant: Address,
+    landlord: Address,
+    monthly_rent: i128,
+    security_deposit: i128,
+    start_date: u64,
+    end_date: u64,
+    agent: Option<Address>,
+) {
+    AgreementCreated {
+        tenant,
+        landlord,
+        agreement_id,
+        monthly_rent,
+        security_deposit,
+        start_date,
+        end_date,
+        agent,
+    }
+    .publish(env);
+}
+
+/// Helper function to emit agreement signed event
+pub(crate) fn agreement_signed(
+    env: &Env,
+    agreement_id: String,
+    tenant: Address,
+    landlord: Address,
+    signed_at: u64,
+) {
+    AgreementSigned {
+        tenant,
+        landlord,
+        agreement_id,
+        signed_at,
+    }
+    .publish(env);
+}
+
+/// Helper function to emit agreement submitted event
+pub(crate) fn agreement_submitted(
+    env: &Env,
+    agreement_id: String,
+    landlord: Address,
+    tenant: Address,
+) {
+    AgreementSubmitted {
+        landlord,
+        tenant,
+        agreement_id,
+    }
+    .publish(env);
+}
+
+/// Helper function to emit agreement cancelled event
+pub(crate) fn agreement_cancelled(
+    env: &Env,
+    agreement_id: String,
+    landlord: Address,
+    tenant: Address,
+) {
+    AgreementCancelled {
+        landlord,
+        tenant,
+        agreement_id,
+    }
+    .publish(env);
+}
+
+/// Helper function to emit config updated event
+pub(crate) fn config_updated(env: &Env, admin: Address, old_config: Config, new_config: Config) {
     ConfigUpdated {
+        admin,
         old_fee_bps: old_config.fee_bps,
         new_fee_bps: new_config.fee_bps,
         old_fee_collector: old_config.fee_collector,

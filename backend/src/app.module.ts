@@ -17,6 +17,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { StellarModule } from './modules/stellar/stellar.module';
 import { DisputesModule } from './modules/disputes/disputes.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { HealthModule } from './health/health.module';
 import { PaymentModule } from './modules/payments/payment.module';
@@ -27,41 +28,89 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 import { RequestSizeLimitMiddleware } from './common/middleware/request-size-limit.middleware';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
+import { ThreatDetectionMiddleware } from './common/middleware/threat-detection.middleware';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
+import { SentryModule } from '@sentry/nestjs/setup';
+import { StorageModule } from './modules/storage/storage.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
+import { DeveloperModule } from './modules/developer/developer.module';
+import { SearchModule } from './modules/search/search.module';
+import { JobQueueService } from './common/services/job-queue.service';
 
 @Module({
   imports: [
+    ...(process.env.NODE_ENV === 'test' ? [] : [SentryModule.forRoot()]),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => {
+        if (process.env.NODE_ENV === 'test') {
+          return {
+            store: 'memory',
+            ttl: 600,
+          };
+        }
+        return {
+          store: await redisStore({
+            socket: {
+              host: process.env.REDIS_HOST || 'localhost',
+              port: parseInt(process.env.REDIS_PORT || '6379'),
+            },
+            password: process.env.REDIS_PASSWORD || undefined,
+            ttl: 600, // Default TTL in seconds
+          }),
+        };
+      },
     }),
     ThrottlerModule.forRoot([
       {
         name: 'default',
-        ttl: parseInt(process.env.RATE_LIMIT_TTL || '60000'),
-        limit: parseInt(process.env.RATE_LIMIT_MAX || '100'),
+        ttl: parseInt(process.env.RATE_LIMIT_TTL!),
+        limit: parseInt(process.env.RATE_LIMIT_MAX!),
       },
       {
         name: 'auth',
-        ttl: parseInt(process.env.RATE_LIMIT_AUTH_TTL || '60000'),
-        limit: parseInt(process.env.RATE_LIMIT_AUTH_MAX || '5'),
+        ttl: parseInt(process.env.RATE_LIMIT_AUTH_TTL!),
+        limit: parseInt(process.env.RATE_LIMIT_AUTH_MAX!),
       },
       {
         name: 'strict',
-        ttl: 60000,
-        limit: 10,
+        ttl: parseInt(process.env.RATE_LIMIT_STRICT_TTL!),
+        limit: parseInt(process.env.RATE_LIMIT_STRICT_MAX!),
       },
     ]),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || 'password123',
-      database: process.env.DB_NAME || 'chioma_db',
-      namingStrategy: new SnakeNamingStrategy(),
-      entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
-      migrations: [__dirname + '/migrations/*{.ts,.js}'],
-      synchronize: false,
-      logging: process.env.NODE_ENV === 'development',
+    TypeOrmModule.forRootAsync({
+      inject: [],
+      useFactory: () => {
+        const isTest = process.env.NODE_ENV === 'test';
+        if (isTest && process.env.DB_TYPE === 'sqlite') {
+          return {
+            type: 'sqlite',
+            database: ':memory:',
+            namingStrategy: new SnakeNamingStrategy(),
+            entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
+            synchronize: true, // Auto-create schema for in-memory DB
+            logging: false,
+          };
+        }
+        return {
+          type: 'postgres',
+          host: process.env.DB_HOST,
+          port: parseInt(process.env.DB_PORT || '5432'),
+          username: process.env.DB_USERNAME,
+          password: process.env.DB_PASSWORD,
+          database: process.env.DB_NAME,
+          namingStrategy: new SnakeNamingStrategy(),
+          entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
+          migrations: [__dirname + '/migrations/*{.ts,.js}'],
+          synchronize: false,
+          logging: process.env.NODE_ENV === 'development',
+        };
+      },
     }),
     AgreementsModule,
     AuditModule,
@@ -70,15 +119,26 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
     PropertiesModule,
     StellarModule,
     DisputesModule,
+    MonitoringModule,
     HealthModule,
     PaymentModule,
     NotificationsModule,
     ProfileModule,
     SecurityModule,
+    StorageModule,
+    ReviewsModule,
+    FeedbackModule,
+    DeveloperModule,
+    SearchModule,
+    // Maintenance module
+    require('./modules/maintenance/maintenance.module').MaintenanceModule,
+    // KYC module
+    require('./modules/kyc/kyc.module').KycModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    JobQueueService,
     {
       provide: 'APP_PIPE',
       useClass: ValidationPipe,
@@ -90,6 +150,30 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
   ],
 })
 export class AppModule implements NestModule {
+  constructor() {
+    console.log('AppModule constructor: validating rate limit config');
+    this.validateRateLimitConfig();
+    console.log('AppModule constructor: validation passed');
+  }
+
+  private validateRateLimitConfig(): void {
+    const required = [
+      'RATE_LIMIT_TTL',
+      'RATE_LIMIT_MAX',
+      'RATE_LIMIT_AUTH_TTL',
+      'RATE_LIMIT_AUTH_MAX',
+      'RATE_LIMIT_STRICT_TTL',
+      'RATE_LIMIT_STRICT_MAX',
+    ];
+
+    const missing = required.filter((key) => !process.env[key]);
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing required environment variables: ${missing.join(', ')}`,
+      );
+    }
+  }
+
   configure(consumer: MiddlewareConsumer) {
     // Security headers middleware (applied to all routes)
     consumer.apply(SecurityHeadersMiddleware).forRoutes('*');
@@ -109,5 +193,8 @@ export class AppModule implements NestModule {
         'auth/forgot-password',
         'auth/reset-password',
       );
+
+    // Real-time threat detection (applied to all API routes)
+    consumer.apply(ThreatDetectionMiddleware).forRoutes('api/*');
   }
 }

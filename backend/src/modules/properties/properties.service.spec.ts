@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { PropertiesService } from './properties.service';
 import {
   Property,
@@ -15,6 +16,7 @@ import { PropertyImage } from './entities/property-image.entity';
 import { PropertyAmenity } from './entities/property-amenity.entity';
 import { RentalUnit } from './entities/rental-unit.entity';
 import { User, UserRole, AuthMethod } from '../users/entities/user.entity';
+import { KycStatus } from '../kyc/kyc.entity';
 
 describe('PropertiesService', () => {
   let service: PropertiesService;
@@ -41,6 +43,7 @@ describe('PropertiesService', () => {
     refreshToken: null,
     createdAt: new Date(),
     updatedAt: new Date(),
+    kycStatus: KycStatus.PENDING,
   };
 
   const mockAdmin: User = {
@@ -115,6 +118,15 @@ describe('PropertiesService', () => {
     delete: jest.fn(),
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    store: {
+      keys: jest.fn().mockResolvedValue([]),
+    },
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -134,6 +146,10 @@ describe('PropertiesService', () => {
         {
           provide: getRepositoryToken(RentalUnit),
           useValue: mockRentalUnitRepository,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
       ],
     }).compile();
@@ -456,7 +472,57 @@ describe('PropertiesService', () => {
         city: 'New York',
       });
 
+      // Note: After refactoring to use PropertyQueryBuilder,
+      // the query building logic is now in a separate class
+      // but the interface and behavior remain the same
       expect(mockQueryBuilder.andWhere).toHaveBeenCalled();
+    });
+
+    it('should cache public listings', async () => {
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockProperty], 1]),
+      };
+
+      mockPropertyRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+      mockCacheManager.get.mockResolvedValue(null);
+
+      const query = {
+        page: 1,
+        limit: 10,
+        status: ListingStatus.PUBLISHED,
+      };
+      await service.findAll(query);
+
+      expect(mockCacheManager.set).toHaveBeenCalled();
+    });
+
+    it('should return cached data if available', async () => {
+      const cachedData = { data: [mockProperty], total: 1, page: 1, limit: 10 };
+      mockCacheManager.get.mockResolvedValue(cachedData);
+
+      const result = await service.findAll({
+        status: ListingStatus.PUBLISHED,
+      });
+
+      expect(result).toEqual(cachedData);
+      expect(mockPropertyRepository.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('should invalidate cache on update', async () => {
+      mockPropertyRepository.findOne.mockResolvedValue(mockProperty);
+      mockPropertyRepository.save.mockResolvedValue(mockProperty);
+      mockCacheManager.store.keys.mockResolvedValue(['properties:list:key']);
+
+      await service.update('property-id', { title: 'Updated' }, mockOwner);
+
+      expect(mockCacheManager.del).toHaveBeenCalledWith('properties:list:key');
     });
   });
 });

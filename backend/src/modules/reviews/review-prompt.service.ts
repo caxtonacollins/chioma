@@ -1,0 +1,24 @@
+import { Injectable } from '@nestjs/common';
+import { ReviewsService } from '../reviews/reviews.service';
+import { MaintenanceService } from '../maintenance/maintenance.service';
+import { AgreementsService } from '../agreements/agreements.service';
+import { ReviewContext } from '../reviews/review.entity';
+
+@Injectable()
+export class ReviewPromptService {
+  constructor(
+    private readonly reviewsService: ReviewsService,
+    private readonly maintenanceService: MaintenanceService,
+    private readonly agreementsService: AgreementsService,
+  ) {}
+
+  async promptForLeaseReview(agreementId: string) {
+    // Fetch agreement, notify tenant and landlord to review each other
+    // Implementation: send notification or create review prompt record
+  }
+
+  async promptForMaintenanceReview(maintenanceId: string) {
+    // Fetch maintenance request, notify tenant and landlord to review each other
+    // Implementation: send notification or create review prompt record
+  }
+}

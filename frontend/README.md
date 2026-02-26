@@ -2,6 +2,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Map Feature
+
+The interactive map feature uses **Leaflet with OpenStreetMap** - **no API key required!**
+
+- ✅ 100% free
+- ✅ No setup needed
+- ✅ Works immediately
+- ✅ No usage limits
+
+See [LEAFLET_SETUP.md](./LEAFLET_SETUP.md) for more details.
+
+### Running the Development Server
+
 First, run the development server:
 
 ```bash

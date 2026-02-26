@@ -11,12 +11,13 @@ import {
   MessageSquare,
   FileText,
   PieChart,
-  Bell,
+  BellRing,
   Search,
   Plus,
   LogOut,
   Menu,
 } from 'lucide-react';
+import { NotificationBell } from '@/components/notifications';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -34,30 +35,35 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     },
     {
       name: 'Properties',
-      href: '/dashboard/properties',
+      href: '/agents/properties',
       icon: Building2,
     },
     {
       name: 'My Wallet',
-      href: '/dashboard/wallet',
+      href: '/agents/wallet',
       icon: Wallet,
     },
     {
       name: 'Messages',
-      href: '/dashboard/messages',
+      href: '/agents/messages',
       icon: MessageSquare,
       badge: '3',
       badgeColor: 'bg-blue-600',
     },
     {
       name: 'Contracts',
-      href: '/dashboard/contracts',
+      href: '/agents/contracts',
       icon: FileText,
     },
     {
       name: 'Analytics',
-      href: '/dashboard/analytics',
+      href: '/agents/analytics',
       icon: PieChart,
+    },
+    {
+      name: 'Notifications',
+      href: '/agents/notifications',
+      icon: BellRing,
     },
   ];
 
@@ -146,7 +152,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <div className="w-10 h-10 rounded-full border-2 border-white/10 overflow-hidden relative shrink-0">
               <Image
                 src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
-                alt="User"
+                alt="Sarah Jenks profile avatar"
                 width={40}
                 height={40}
               />
@@ -204,10 +210,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
 
             {/* Notification */}
-            <button className="relative p-2 text-neutral-400 hover:text-neutral-600 transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
+            <NotificationBell
+              viewAllHref="/agents/notifications"
+              size={20}
+              className="text-neutral-400"
+            />
 
             {/* CTA */}
             <button className="flex items-center gap-2 bg-brand-blue hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
