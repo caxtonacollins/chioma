@@ -35,29 +35,29 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     },
     {
       name: 'Properties',
-      href: '/dashboard/properties',
+      href: '/agents/properties',
       icon: Building2,
     },
     {
       name: 'My Wallet',
-      href: '/dashboard/wallet',
+      href: '/agents/wallet',
       icon: Wallet,
     },
     {
       name: 'Messages',
-      href: '/dashboard/messages',
+      href: '/agents/messages',
       icon: MessageSquare,
       badge: '3',
       badgeColor: 'bg-blue-600',
     },
     {
       name: 'Contracts',
-      href: '/dashboard/contracts',
+      href: '/agents/contracts',
       icon: FileText,
     },
     {
       name: 'Analytics',
-      href: '/dashboard/analytics',
+      href: '/agents/analytics',
       icon: PieChart,
     },
     {

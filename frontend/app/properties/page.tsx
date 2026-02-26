@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import Footer from '@/components/Footer';
-import Navbar from '@/components/Properties-navbar';
+import Navbar from '@/components/Navbar';
 import PropertyCardSkeleton from '@/components/PropertyCardSkeleton';
 
 // Dynamically import the map component to avoid SSR issues
@@ -170,7 +170,7 @@ export default function PropertyListing() {
 
   return (
     <>
-      <Navbar />
+      <Navbar theme="light" />
       <div className="">
         {/* Header/Search Bar */}
         <header className=" top-0 bg-white border-b border-gray-200">

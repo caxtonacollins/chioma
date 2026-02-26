@@ -25,7 +25,7 @@ const navItems = [
   },
   {
     name: 'Agreements',
-    href: '/dashboard/agreements',
+    href: '/dashboard/documents',
     icon: FileText,
   },
   {
