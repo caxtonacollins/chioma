@@ -249,7 +249,8 @@ describe('Stellar Authentication E2E', () => {
         .map(() =>
           request(app.getHttpServer())
             .post('/auth/stellar/challenge')
-            .send({ walletAddress: Keypair.random().publicKey() }),
+            .send({ walletAddress: Keypair.random().publicKey() })
+            .then((res) => res),
         );
 
       const responses = await Promise.all(concurrentRequests);
