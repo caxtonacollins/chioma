@@ -72,12 +72,16 @@ describe('LocalizationService', () => {
     });
 
     it('should handle short format', () => {
-      const result = service.formatDate(testDate, SupportedLanguage.ENGLISH, 'short');
+      const result = service.formatDate(testDate, SupportedLanguage.ENGLISH, { 
+        dateStyle: 'short' 
+      });
       expect(result).toContain('1/15');
     });
 
     it('should handle long format', () => {
-      const result = service.formatDate(testDate, SupportedLanguage.ENGLISH, 'long');
+      const result = service.formatDate(testDate, SupportedLanguage.ENGLISH, { 
+        dateStyle: 'long' 
+      });
       expect(result).toContain('January');
       expect(result).toContain('2024');
     });
@@ -118,7 +122,10 @@ describe('LocalizationService', () => {
     });
 
     it('should respect decimal places', () => {
-      const result = service.formatNumber(1234.56789, SupportedLanguage.ENGLISH, 2);
+      const result = service.formatNumber(1234.56789, SupportedLanguage.ENGLISH, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
       expect(result).toBe('1,234.57');
     });
   });
