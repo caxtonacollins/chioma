@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   BellRing,
+  User,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,7 +26,7 @@ const navItems = [
   },
   {
     name: 'Agreements',
-    href: '/dashboard/agreements',
+    href: '/dashboard/documents',
     icon: FileText,
   },
   {
@@ -37,6 +38,11 @@ const navItems = [
     name: 'Notifications',
     href: '/dashboard/notifications',
     icon: BellRing,
+  },
+  {
+    name: 'Profile',
+    href: '/dashboard/profile',
+    icon: User,
   },
   {
     name: 'Settings',
