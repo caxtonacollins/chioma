@@ -7,10 +7,7 @@ import {
   ThreatStatus,
   ThreatType,
 } from './entities/threat-event.entity';
-import {
-  SecurityEvent,
-  SecurityEventSeverity,
-} from './entities/security-event.entity';
+import { SecurityEvent } from './entities/security-event.entity';
 
 export enum IncidentSeverity {
   P1 = 'P1', // Critical – immediate response
@@ -94,7 +91,11 @@ export class SecurityIncidentService {
     if (threat.userId && !incident.affectedUsers.includes(threat.userId)) {
       incident.affectedUsers.push(threat.userId);
     }
-    this.addTimeline(incident, 'system', `Threat detected: ${threat.threatType}`);
+    this.addTimeline(
+      incident,
+      'system',
+      `Threat detected: ${threat.threatType}`,
+    );
 
     // Execute automated playbook
     await this.executePlaybook(incident, threat);
@@ -158,7 +159,10 @@ export class SecurityIncidentService {
       responseActions: incident.responseActions,
       timelineEntries: incident.timeline.length,
       durationMinutes: Math.round(durationMs / 60_000),
-      meetsP1Target: incident.severity === IncidentSeverity.P1 ? durationMs <= 5 * 60_000 : true,
+      meetsP1Target:
+        incident.severity === IncidentSeverity.P1
+          ? durationMs <= 5 * 60_000
+          : true,
       createdAt: incident.createdAt.toISOString(),
       resolvedAt: incident.resolvedAt?.toISOString(),
     };
@@ -187,8 +191,7 @@ export class SecurityIncidentService {
 
     // P1 SLA = 5 min, P2 SLA = 60 min
     const slaCompliant = resolved.filter((i) => {
-      const mins =
-        (i.resolvedAt!.getTime() - i.createdAt.getTime()) / 60_000;
+      const mins = (i.resolvedAt!.getTime() - i.createdAt.getTime()) / 60_000;
       if (i.severity === IncidentSeverity.P1) return mins <= 5;
       if (i.severity === IncidentSeverity.P2) return mins <= 60;
       return true;
@@ -200,7 +203,9 @@ export class SecurityIncidentService {
       p2Count: all.filter((i) => i.severity === IncidentSeverity.P2).length,
       avgResolutionMinutes: Math.round(avgResMs / 60_000),
       slaCompliance:
-        resolved.length === 0 ? 100 : Math.round((slaCompliant / resolved.length) * 100),
+        resolved.length === 0
+          ? 100
+          : Math.round((slaCompliant / resolved.length) * 100),
     };
   }
 
@@ -222,7 +227,11 @@ export class SecurityIncidentService {
         actions.push('block_ip', 'alert_security_team', 'increase_monitoring');
         break;
       case ThreatType.PRIVILEGE_ESCALATION:
-        actions.push('deny_request', 'alert_security_team', 'audit_user_sessions');
+        actions.push(
+          'deny_request',
+          'alert_security_team',
+          'audit_user_sessions',
+        );
         break;
       case ThreatType.DATA_EXFILTRATION:
         actions.push('throttle_user', 'alert_security_team', 'flag_for_review');
@@ -240,7 +249,9 @@ export class SecurityIncidentService {
     }
 
     for (const action of actions) {
-      this.logger.log(`[PLAYBOOK] Executing: ${action} for incident ${incident.id}`);
+      this.logger.log(
+        `[PLAYBOOK] Executing: ${action} for incident ${incident.id}`,
+      );
       this.addTimeline(incident, 'system', `Playbook action: ${action}`);
       incident.responseActions.push(action);
     }

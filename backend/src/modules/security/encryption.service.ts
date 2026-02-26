@@ -76,9 +76,7 @@ export class EncryptionService {
         SALT_LENGTH + IV_LENGTH,
         SALT_LENGTH + IV_LENGTH + TAG_LENGTH,
       );
-      const ciphertext = payload.subarray(
-        SALT_LENGTH + IV_LENGTH + TAG_LENGTH,
-      );
+      const ciphertext = payload.subarray(SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
 
       const derivedKey = this.deriveKey(this.masterKey, salt);
 
@@ -87,7 +85,11 @@ export class EncryptionService {
       });
       decipher.setAuthTag(authTag);
 
-      return decipher.update(ciphertext) + decipher.final('utf8');
+      const decrypted = Buffer.concat([
+        decipher.update(ciphertext),
+        decipher.final(),
+      ]);
+      return decrypted.toString('utf8');
     } catch (error) {
       this.logger.error('Decryption failed', error);
       throw new InternalServerErrorException('Decryption failed');
@@ -115,7 +117,10 @@ export class EncryptionService {
   /**
    * Generate a time-based HMAC token for use in signed URLs / webhooks.
    */
-  generateSignedToken(payload: string, expiresInSeconds: number = 3600): string {
+  generateSignedToken(
+    payload: string,
+    expiresInSeconds: number = 3600,
+  ): string {
     const expires = Math.floor(Date.now() / 1000) + expiresInSeconds;
     const data = `${payload}:${expires}`;
     const signature = crypto

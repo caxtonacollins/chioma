@@ -34,7 +34,9 @@ export class BlockchainAuditService {
    * Anchor the last N un-anchored audit logs to the blockchain.
    * Called on a schedule from AuditRetentionService.
    */
-  async anchorAuditBatch(batchSize: number = 100): Promise<AnchorRecord | null> {
+  async anchorAuditBatch(
+    batchSize: number = 100,
+  ): Promise<AnchorRecord | null> {
     const logs = await this.getUnanchoredLogs(batchSize);
     if (logs.length === 0) {
       this.logger.debug('No un-anchored audit logs to process');
@@ -130,10 +132,20 @@ export class BlockchainAuditService {
 
   // ─── Stellar integration ──────────────────────────────────────────────────
 
-  private async submitToStellar(merkleRoot: string, batchId: string): Promise<string> {
+  private async submitToStellar(
+    merkleRoot: string,
+    _batchId: string,
+  ): Promise<string> {
     // Dynamically import to avoid hard dependency at boot
-    const { Keypair, TransactionBuilder, Networks, Operation, Asset, Memo, BASE_FEE } =
-      await import('@stellar/stellar-sdk');
+    const {
+      Keypair,
+      TransactionBuilder,
+      Networks,
+      Operation,
+      Asset,
+      Memo,
+      BASE_FEE,
+    } = await import('@stellar/stellar-sdk');
     const { default: StellarSdk } = await import('@stellar/stellar-sdk');
 
     const secretKey = process.env.STELLAR_ANCHOR_SECRET_KEY;
@@ -148,7 +160,7 @@ export class BlockchainAuditService {
         : 'https://horizon-testnet.stellar.org';
 
     const keypair = Keypair.fromSecret(secretKey);
-    const server = new (StellarSdk as any).Horizon.Server(horizonUrl);
+    const server = new StellarSdk.Horizon.Server(horizonUrl);
 
     const account = await server.loadAccount(keypair.publicKey());
 

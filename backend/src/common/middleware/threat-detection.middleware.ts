@@ -24,7 +24,8 @@ export class ThreatDetectionMiddleware implements NestMiddleware {
         // Return 429 / 403 based on type – here we use 429 for rate-based blocks
         _res.status(429).json({
           statusCode: 429,
-          message: 'Too Many Requests – your IP has been temporarily blocked due to suspicious activity',
+          message:
+            'Too Many Requests – your IP has been temporarily blocked due to suspicious activity',
           timestamp: new Date().toISOString(),
         });
         return;

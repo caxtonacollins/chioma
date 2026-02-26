@@ -2,7 +2,11 @@ import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role, SystemRole } from './entities/role.entity';
-import { Permission, PermissionAction, PermissionResource } from './entities/permission.entity';
+import {
+  Permission,
+  PermissionAction,
+  PermissionResource,
+} from './entities/permission.entity';
 
 export interface PermissionCheck {
   resource: PermissionResource;
@@ -16,22 +20,40 @@ export class RbacService {
   // Default permission matrix for system roles
   private readonly defaultPermissions: Record<SystemRole, PermissionCheck[]> = {
     [SystemRole.SUPER_ADMIN]: Object.values(PermissionResource).flatMap((r) =>
-      Object.values(PermissionAction).map((a) => ({ resource: r as PermissionResource, action: a as PermissionAction })),
+      Object.values(PermissionAction).map((a) => ({
+        resource: r as PermissionResource,
+        action: a as PermissionAction,
+      })),
     ),
     [SystemRole.ADMIN]: [
       { resource: PermissionResource.USERS, action: PermissionAction.READ },
       { resource: PermissionResource.USERS, action: PermissionAction.UPDATE },
       { resource: PermissionResource.USERS, action: PermissionAction.DELETE },
-      { resource: PermissionResource.PROPERTIES, action: PermissionAction.MANAGE },
-      { resource: PermissionResource.AGREEMENTS, action: PermissionAction.MANAGE },
-      { resource: PermissionResource.PAYMENTS, action: PermissionAction.MANAGE },
-      { resource: PermissionResource.DISPUTES, action: PermissionAction.MANAGE },
+      {
+        resource: PermissionResource.PROPERTIES,
+        action: PermissionAction.MANAGE,
+      },
+      {
+        resource: PermissionResource.AGREEMENTS,
+        action: PermissionAction.MANAGE,
+      },
+      {
+        resource: PermissionResource.PAYMENTS,
+        action: PermissionAction.MANAGE,
+      },
+      {
+        resource: PermissionResource.DISPUTES,
+        action: PermissionAction.MANAGE,
+      },
       { resource: PermissionResource.KYC, action: PermissionAction.MANAGE },
       { resource: PermissionResource.AUDIT, action: PermissionAction.READ },
       { resource: PermissionResource.SECURITY, action: PermissionAction.READ },
       { resource: PermissionResource.REPORTS, action: PermissionAction.READ },
       { resource: PermissionResource.REPORTS, action: PermissionAction.EXPORT },
-      { resource: PermissionResource.NOTIFICATIONS, action: PermissionAction.MANAGE },
+      {
+        resource: PermissionResource.NOTIFICATIONS,
+        action: PermissionAction.MANAGE,
+      },
     ],
     [SystemRole.AUDITOR]: [
       { resource: PermissionResource.AUDIT, action: PermissionAction.READ },
@@ -40,36 +62,84 @@ export class RbacService {
       { resource: PermissionResource.REPORTS, action: PermissionAction.READ },
       { resource: PermissionResource.REPORTS, action: PermissionAction.EXPORT },
       { resource: PermissionResource.PAYMENTS, action: PermissionAction.READ },
-      { resource: PermissionResource.AGREEMENTS, action: PermissionAction.READ },
+      {
+        resource: PermissionResource.AGREEMENTS,
+        action: PermissionAction.READ,
+      },
     ],
     [SystemRole.SUPPORT]: [
       { resource: PermissionResource.USERS, action: PermissionAction.READ },
       { resource: PermissionResource.DISPUTES, action: PermissionAction.READ },
-      { resource: PermissionResource.DISPUTES, action: PermissionAction.UPDATE },
-      { resource: PermissionResource.NOTIFICATIONS, action: PermissionAction.CREATE },
+      {
+        resource: PermissionResource.DISPUTES,
+        action: PermissionAction.UPDATE,
+      },
+      {
+        resource: PermissionResource.NOTIFICATIONS,
+        action: PermissionAction.CREATE,
+      },
     ],
     [SystemRole.LANDLORD]: [
-      { resource: PermissionResource.PROPERTIES, action: PermissionAction.CREATE },
-      { resource: PermissionResource.PROPERTIES, action: PermissionAction.READ },
-      { resource: PermissionResource.PROPERTIES, action: PermissionAction.UPDATE },
-      { resource: PermissionResource.PROPERTIES, action: PermissionAction.DELETE },
-      { resource: PermissionResource.AGREEMENTS, action: PermissionAction.CREATE },
-      { resource: PermissionResource.AGREEMENTS, action: PermissionAction.READ },
-      { resource: PermissionResource.AGREEMENTS, action: PermissionAction.UPDATE },
+      {
+        resource: PermissionResource.PROPERTIES,
+        action: PermissionAction.CREATE,
+      },
+      {
+        resource: PermissionResource.PROPERTIES,
+        action: PermissionAction.READ,
+      },
+      {
+        resource: PermissionResource.PROPERTIES,
+        action: PermissionAction.UPDATE,
+      },
+      {
+        resource: PermissionResource.PROPERTIES,
+        action: PermissionAction.DELETE,
+      },
+      {
+        resource: PermissionResource.AGREEMENTS,
+        action: PermissionAction.CREATE,
+      },
+      {
+        resource: PermissionResource.AGREEMENTS,
+        action: PermissionAction.READ,
+      },
+      {
+        resource: PermissionResource.AGREEMENTS,
+        action: PermissionAction.UPDATE,
+      },
       { resource: PermissionResource.PAYMENTS, action: PermissionAction.READ },
-      { resource: PermissionResource.DISPUTES, action: PermissionAction.CREATE },
+      {
+        resource: PermissionResource.DISPUTES,
+        action: PermissionAction.CREATE,
+      },
       { resource: PermissionResource.DISPUTES, action: PermissionAction.READ },
     ],
     [SystemRole.TENANT]: [
-      { resource: PermissionResource.PROPERTIES, action: PermissionAction.READ },
-      { resource: PermissionResource.AGREEMENTS, action: PermissionAction.READ },
-      { resource: PermissionResource.PAYMENTS, action: PermissionAction.CREATE },
+      {
+        resource: PermissionResource.PROPERTIES,
+        action: PermissionAction.READ,
+      },
+      {
+        resource: PermissionResource.AGREEMENTS,
+        action: PermissionAction.READ,
+      },
+      {
+        resource: PermissionResource.PAYMENTS,
+        action: PermissionAction.CREATE,
+      },
       { resource: PermissionResource.PAYMENTS, action: PermissionAction.READ },
-      { resource: PermissionResource.DISPUTES, action: PermissionAction.CREATE },
+      {
+        resource: PermissionResource.DISPUTES,
+        action: PermissionAction.CREATE,
+      },
       { resource: PermissionResource.DISPUTES, action: PermissionAction.READ },
     ],
     [SystemRole.USER]: [
-      { resource: PermissionResource.PROPERTIES, action: PermissionAction.READ },
+      {
+        resource: PermissionResource.PROPERTIES,
+        action: PermissionAction.READ,
+      },
       { resource: PermissionResource.USERS, action: PermissionAction.READ },
     ],
   };
@@ -95,7 +165,9 @@ export class RbacService {
     if (!permissions) return false;
 
     return permissions.some(
-      (p) => p.resource === resource && (p.action === action || p.action === PermissionAction.MANAGE),
+      (p) =>
+        p.resource === resource &&
+        (p.action === action || p.action === PermissionAction.MANAGE),
     );
   }
 

@@ -62,9 +62,11 @@ export class SecurityController {
   })
   getSecurityTxt(@Res() res: Response): void {
     const contact =
-      this.configService.get<string>('SECURITY_CONTACT') || 'security@chioma.app';
+      this.configService.get<string>('SECURITY_CONTACT') ||
+      'security@chioma.app';
     const policy =
-      this.configService.get<string>('SECURITY_POLICY_URL') || 'https://chioma.app/security';
+      this.configService.get<string>('SECURITY_POLICY_URL') ||
+      'https://chioma.app/security';
     const ack =
       this.configService.get<string>('SECURITY_ACKNOWLEDGMENTS_URL') ||
       'https://chioma.app/security/acknowledgments';
@@ -127,7 +129,8 @@ export class SecurityController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Check for suspicious activity on a user account' })
   async detectSuspicious(@Param('userId') userId: string) {
-    const suspicious = await this.securityEventsService.detectSuspiciousActivity(userId);
+    const suspicious =
+      await this.securityEventsService.detectSuspiciousActivity(userId);
     return { userId, suspicious };
   }
 
@@ -227,8 +230,18 @@ export class SecurityController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Generate GDPR compliance report' })
-  @ApiQuery({ name: 'from', required: false, type: String, description: 'ISO date' })
-  @ApiQuery({ name: 'to', required: false, type: String, description: 'ISO date' })
+  @ApiQuery({
+    name: 'from',
+    required: false,
+    type: String,
+    description: 'ISO date',
+  })
+  @ApiQuery({
+    name: 'to',
+    required: false,
+    type: String,
+    description: 'ISO date',
+  })
   async getGdprReport(
     @Query('from') fromStr?: string,
     @Query('to') toStr?: string,
@@ -315,9 +328,11 @@ export class SecurityController {
   @ApiOperation({ summary: 'Anchor latest audit log batch to blockchain' })
   @ApiQuery({ name: 'batchSize', required: false, type: Number })
   async anchorAuditLogs(
-    @Query('batchSize', new DefaultValuePipe(100), ParseIntPipe) batchSize: number,
+    @Query('batchSize', new DefaultValuePipe(100), ParseIntPipe)
+    batchSize: number,
   ) {
-    const result = await this.blockchainAuditService.anchorAuditBatch(batchSize);
+    const result =
+      await this.blockchainAuditService.anchorAuditBatch(batchSize);
     if (!result) return { message: 'No un-anchored audit logs found' };
     return result;
   }

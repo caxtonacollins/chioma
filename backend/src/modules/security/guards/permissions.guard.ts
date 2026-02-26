@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RbacService } from '../rbac.service';
-import { PermissionAction, PermissionResource } from '../entities/permission.entity';
+import {
+  PermissionAction,
+  PermissionResource,
+} from '../entities/permission.entity';
 
 export const PERMISSIONS_KEY = 'required_permissions';
 
@@ -18,8 +21,7 @@ export interface RequiredPermission {
 export const RequirePermission = (
   resource: PermissionResource,
   action: PermissionAction,
-) =>
-  Reflect.metadata(PERMISSIONS_KEY, [{ resource, action }]);
+) => Reflect.metadata(PERMISSIONS_KEY, [{ resource, action }]);
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {

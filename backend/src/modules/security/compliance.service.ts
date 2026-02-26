@@ -2,8 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { AuditLog, AuditAction } from '../audit/entities/audit-log.entity';
-import { SecurityEvent, SecurityEventSeverity } from './entities/security-event.entity';
-import { ThreatEvent, ThreatLevel } from './entities/threat-event.entity';
+import {
+  SecurityEvent,
+  SecurityEventSeverity,
+} from './entities/security-event.entity';
+import { ThreatEvent } from './entities/threat-event.entity';
 
 export interface ComplianceReport {
   generatedAt: string;
@@ -40,10 +43,7 @@ export class ComplianceService {
   /**
    * Generate a GDPR compliance report.
    */
-  async generateGdprReport(
-    from: Date,
-    to: Date,
-  ): Promise<ComplianceReport> {
+  async generateGdprReport(from: Date, to: Date): Promise<ComplianceReport> {
     const findings: ComplianceFinding[] = [];
 
     // Art. 5 – Audit trails for data processing
@@ -67,12 +67,16 @@ export class ComplianceService {
     });
     findings.push({
       control: 'GDPR Art.32 – Security Incidents',
-      status: criticalEvents === 0 ? 'pass' : criticalEvents < 5 ? 'warning' : 'fail',
+      status:
+        criticalEvents === 0 ? 'pass' : criticalEvents < 5 ? 'warning' : 'fail',
       description: `${criticalEvents} critical security events in period`,
       evidence: `Critical events: ${criticalEvents}`,
-      riskLevel: criticalEvents === 0 ? 'low' : criticalEvents < 5 ? 'medium' : 'high',
+      riskLevel:
+        criticalEvents === 0 ? 'low' : criticalEvents < 5 ? 'medium' : 'high',
       remediation:
-        criticalEvents > 0 ? 'Review and remediate open security incidents' : undefined,
+        criticalEvents > 0
+          ? 'Review and remediate open security incidents'
+          : undefined,
     });
 
     // Art. 17 – Right to erasure (check delete operations are audited)
@@ -106,9 +110,13 @@ export class ComplianceService {
     findings.push({
       control: 'GDPR Art.32 – Multi-Factor Authentication',
       status: mfaEnabled ? 'pass' : 'warning',
-      description: mfaEnabled ? 'MFA enforcement enabled' : 'MFA not enforced globally',
+      description: mfaEnabled
+        ? 'MFA enforcement enabled'
+        : 'MFA not enforced globally',
       riskLevel: mfaEnabled ? 'low' : 'medium',
-      remediation: mfaEnabled ? undefined : 'Set MFA_REQUIRED=true to enforce MFA',
+      remediation: mfaEnabled
+        ? undefined
+        : 'Set MFA_REQUIRED=true to enforce MFA',
     });
 
     return this.buildReport('GDPR', from, to, findings);
@@ -124,7 +132,8 @@ export class ComplianceService {
     findings.push({
       control: 'CC6.1 – Logical Access Controls',
       status: 'pass',
-      description: 'JWT-based authentication with refresh token rotation implemented',
+      description:
+        'JWT-based authentication with refresh token rotation implemented',
       riskLevel: 'low',
     });
 
@@ -163,7 +172,8 @@ export class ComplianceService {
     findings.push({
       control: 'CC7.3 – Incident Response',
       status: 'pass',
-      description: 'Automated incident triage and playbook execution implemented',
+      description:
+        'Automated incident triage and playbook execution implemented',
       riskLevel: 'low',
     });
 
@@ -211,7 +221,8 @@ export class ComplianceService {
     findings.push({
       control: 'PCI-DSS 8.3 – MFA for Administrative Access',
       status: 'pass',
-      description: 'TOTP MFA implemented for all users; enforced for admin roles',
+      description:
+        'TOTP MFA implemented for all users; enforced for admin roles',
       riskLevel: 'low',
     });
 
@@ -231,7 +242,8 @@ export class ComplianceService {
     findings.push({
       control: 'PCI-DSS 10.5 – Audit Log Integrity',
       status: 'pass',
-      description: 'Merkle-root blockchain anchoring of audit log batches implemented',
+      description:
+        'Merkle-root blockchain anchoring of audit log batches implemented',
       riskLevel: 'low',
     });
 
@@ -239,7 +251,8 @@ export class ComplianceService {
     findings.push({
       control: 'PCI-DSS 10.6 – Log Review',
       status: 'warning',
-      description: 'Automated log review via threat detection; manual review policy recommended',
+      description:
+        'Automated log review via threat detection; manual review policy recommended',
       riskLevel: 'medium',
       remediation: 'Define and document daily log review SOP',
     });
@@ -265,7 +278,8 @@ export class ComplianceService {
     };
 
     const score = Math.round(
-      Object.values(areas).reduce((s, v) => s + v, 0) / Object.values(areas).length,
+      Object.values(areas).reduce((s, v) => s + v, 0) /
+        Object.values(areas).length,
     );
 
     return {
@@ -286,7 +300,9 @@ export class ComplianceService {
     const passed = findings.filter((f) => f.status === 'pass').length;
     const failed = findings.filter((f) => f.status === 'fail').length;
     const score =
-      findings.length === 0 ? 100 : Math.round((passed / findings.length) * 100);
+      findings.length === 0
+        ? 100
+        : Math.round((passed / findings.length) * 100);
 
     const status: ComplianceReport['status'] =
       failed === 0 ? 'compliant' : failed <= 2 ? 'partial' : 'non_compliant';

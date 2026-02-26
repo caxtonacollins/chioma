@@ -10,11 +10,24 @@ import { SecurityEventsService } from './security-events.service';
 import { ComplianceService } from './compliance.service';
 import { SecurityIncidentService } from './security-incident.service';
 
-import { SecurityEvent, SecurityEventType, SecurityEventSeverity } from './entities/security-event.entity';
-import { ThreatEvent, ThreatLevel, ThreatType, ThreatStatus } from './entities/threat-event.entity';
+import {
+  SecurityEvent,
+  SecurityEventType,
+  SecurityEventSeverity,
+} from './entities/security-event.entity';
+import {
+  ThreatEvent,
+  ThreatLevel,
+  ThreatType,
+  ThreatStatus,
+} from './entities/threat-event.entity';
 import { Role } from './entities/role.entity';
-import { Permission, PermissionAction, PermissionResource } from './entities/permission.entity';
-import { AuditLog, AuditAction, AuditStatus, AuditLevel } from '../audit/entities/audit-log.entity';
+import {
+  Permission,
+  PermissionAction,
+  PermissionResource,
+} from './entities/permission.entity';
+import { AuditLog } from '../audit/entities/audit-log.entity';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Helper factory
@@ -177,54 +190,90 @@ describe('RbacService', () => {
 
   it('admin should have READ permission on AUDIT', () => {
     expect(
-      service.hasPermission('admin', PermissionResource.AUDIT, PermissionAction.READ),
+      service.hasPermission(
+        'admin',
+        PermissionResource.AUDIT,
+        PermissionAction.READ,
+      ),
     ).toBe(true);
   });
 
   it('user should NOT have MANAGE permission on ADMIN', () => {
     expect(
-      service.hasPermission('user', PermissionResource.ADMIN, PermissionAction.MANAGE),
+      service.hasPermission(
+        'user',
+        PermissionResource.ADMIN,
+        PermissionAction.MANAGE,
+      ),
     ).toBe(false);
   });
 
   it('super_admin should have MANAGE on all resources', () => {
     for (const resource of Object.values(PermissionResource)) {
       expect(
-        service.hasPermission('super_admin', resource as PermissionResource, PermissionAction.MANAGE),
+        service.hasPermission(
+          'super_admin',
+          resource as PermissionResource,
+          PermissionAction.MANAGE,
+        ),
       ).toBe(true);
     }
   });
 
   it('landlord should be able to create properties', () => {
     expect(
-      service.hasPermission('landlord', PermissionResource.PROPERTIES, PermissionAction.CREATE),
+      service.hasPermission(
+        'landlord',
+        PermissionResource.PROPERTIES,
+        PermissionAction.CREATE,
+      ),
     ).toBe(true);
   });
 
   it('tenant should NOT be able to delete properties', () => {
     expect(
-      service.hasPermission('tenant', PermissionResource.PROPERTIES, PermissionAction.DELETE),
+      service.hasPermission(
+        'tenant',
+        PermissionResource.PROPERTIES,
+        PermissionAction.DELETE,
+      ),
     ).toBe(false);
   });
 
   it('auditor should only read, not create, financial records', () => {
     expect(
-      service.hasPermission('auditor', PermissionResource.PAYMENTS, PermissionAction.READ),
+      service.hasPermission(
+        'auditor',
+        PermissionResource.PAYMENTS,
+        PermissionAction.READ,
+      ),
     ).toBe(true);
     expect(
-      service.hasPermission('auditor', PermissionResource.PAYMENTS, PermissionAction.CREATE),
+      service.hasPermission(
+        'auditor',
+        PermissionResource.PAYMENTS,
+        PermissionAction.CREATE,
+      ),
     ).toBe(false);
   });
 
   it('assertPermission should throw ForbiddenException for denied access', () => {
     expect(() =>
-      service.assertPermission('tenant', PermissionResource.SECURITY, PermissionAction.MANAGE),
+      service.assertPermission(
+        'tenant',
+        PermissionResource.SECURITY,
+        PermissionAction.MANAGE,
+      ),
     ).toThrow();
   });
 
   it('assertPermission should not throw for allowed access', () => {
     expect(() =>
-      service.assertPermission('admin', PermissionResource.AUDIT, PermissionAction.READ),
+      service.assertPermission(
+        'admin',
+        PermissionResource.AUDIT,
+        PermissionAction.READ,
+      ),
     ).not.toThrow();
   });
 });
@@ -244,8 +293,6 @@ describe('ThreatDetectionService', () => {
     threatRepo.find = jest.fn().mockResolvedValue([]);
     threatRepo.count = jest.fn().mockResolvedValue(0);
     threatRepo.update = jest.fn().mockResolvedValue(undefined);
-
-    const mockSecurityRepo = mockRepo();
 
     const mockSecurityEventsService = {
       createEvent: jest.fn().mockResolvedValue({}),
@@ -285,7 +332,9 @@ describe('ThreatDetectionService', () => {
   });
 
   it('should detect brute-force when failed logins exceed threshold', async () => {
-    (securityEventsService.getFailedLoginAttempts as jest.Mock).mockResolvedValue(15);
+    (
+      securityEventsService.getFailedLoginAttempts as jest.Mock
+    ).mockResolvedValue(15);
     threatRepo.save = jest.fn().mockResolvedValue({ id: 'threat-2' });
 
     const detected = await service.checkBruteForce('10.0.0.1', 'user-1');
@@ -299,7 +348,9 @@ describe('ThreatDetectionService', () => {
   });
 
   it('should not flag brute force below threshold', async () => {
-    (securityEventsService.getFailedLoginAttempts as jest.Mock).mockResolvedValue(3);
+    (
+      securityEventsService.getFailedLoginAttempts as jest.Mock
+    ).mockResolvedValue(3);
     const detected = await service.checkBruteForce('10.0.0.2', 'user-2');
     expect(detected).toBe(false);
   });
@@ -331,8 +382,18 @@ describe('ThreatDetectionService', () => {
 
   it('should return threat stats', async () => {
     threatRepo.find = jest.fn().mockResolvedValue([
-      { threatLevel: ThreatLevel.CRITICAL, blocked: true, autoMitigated: true, threatType: ThreatType.BRUTE_FORCE },
-      { threatLevel: ThreatLevel.HIGH, blocked: false, autoMitigated: false, threatType: ThreatType.SQL_INJECTION },
+      {
+        threatLevel: ThreatLevel.CRITICAL,
+        blocked: true,
+        autoMitigated: true,
+        threatType: ThreatType.BRUTE_FORCE,
+      },
+      {
+        threatLevel: ThreatLevel.HIGH,
+        blocked: false,
+        autoMitigated: false,
+        threatType: ThreatType.SQL_INJECTION,
+      },
     ]);
 
     const stats = await service.getThreatStats(24);
@@ -427,7 +488,10 @@ describe('SecurityIncidentService', () => {
     } as ThreatEvent;
 
     const incident = await service.triageThreat(threat);
-    const resolved = service.resolveIncident(incident.id, 'Patched input validation');
+    const resolved = service.resolveIncident(
+      incident.id,
+      'Patched input validation',
+    );
     expect(resolved?.status).toBe('resolved');
     expect(resolved?.resolvedAt).toBeDefined();
   });
@@ -463,9 +527,9 @@ describe('ComplianceService', () => {
     const secEventRepo = mockRepo();
     const threatRepo = mockRepo();
 
-    (auditRepo.count as jest.Mock).mockResolvedValue(500);
-    (secEventRepo.count as jest.Mock).mockResolvedValue(0);
-    (threatRepo.count as jest.Mock).mockResolvedValue(2);
+    auditRepo.count.mockResolvedValue(500);
+    secEventRepo.count.mockResolvedValue(0);
+    threatRepo.count.mockResolvedValue(2);
 
     process.env.SECURITY_ENCRYPTION_KEY = 'a'.repeat(64);
     process.env.NODE_ENV = 'test';

@@ -9,7 +9,6 @@ import {
   ThreatType,
 } from './entities/threat-event.entity';
 import {
-  SecurityEvent,
   SecurityEventType,
   SecurityEventSeverity,
 } from './entities/security-event.entity';
@@ -33,18 +32,21 @@ export class ThreatDetectionService {
   private readonly logger = new Logger(ThreatDetectionService.name);
 
   // In-memory rate counters keyed by IP:window
-  private readonly requestCounters = new Map<string, { count: number; windowStart: number }>();
+  private readonly requestCounters = new Map<
+    string,
+    { count: number; windowStart: number }
+  >();
   // Blocked IPs with TTL
   private readonly blockedIps = new Map<string, number>();
 
   // Thresholds
   private readonly BRUTE_FORCE_THRESHOLD = 10; // failed logins per 15 min
-  private readonly RATE_THRESHOLD = 200;        // requests per minute per IP
+  private readonly RATE_THRESHOLD = 200; // requests per minute per IP
   private readonly WINDOW_MS = 60_000;
 
   // Patterns for injection detection
   private readonly SQL_INJECTION_PATTERNS = [
-    /(\%27)|(\')|(\-\-)|(\%23)|(#)/gi,
+    /(%27)|(')|(--)|(%23)|(#)/gi,
     /(union.+select|select.+from|insert.+into|drop.+table|delete.+from)/gi,
     /(exec|execute|xp_|sp_)/gi,
   ];
@@ -69,7 +71,10 @@ export class ThreatDetectionService {
   /**
    * Main analysis entry point – call from middleware for every request.
    */
-  async analyzeRequest(req: Request, userId?: string): Promise<'allow' | 'block'> {
+  async analyzeRequest(
+    req: Request,
+    userId?: string,
+  ): Promise<'allow' | 'block'> {
     const ipAddress = this.extractIp(req);
     const ctx: ThreatContext = {
       userId,
@@ -101,7 +106,8 @@ export class ThreatDetectionService {
     }
 
     // 3. Payload inspection
-    const payloadStr = JSON.stringify(ctx.payload ?? '') + (ctx.requestPath ?? '');
+    const payloadStr =
+      JSON.stringify(ctx.payload ?? '') + (ctx.requestPath ?? '');
     await this.inspectPayload(payloadStr, ctx);
 
     // 4. Bot detection heuristics
@@ -113,16 +119,14 @@ export class ThreatDetectionService {
   /**
    * Check for brute-force attack based on stored security events.
    */
-  async checkBruteForce(
-    ipAddress: string,
-    userId?: string,
-  ): Promise<boolean> {
+  async checkBruteForce(ipAddress: string, userId?: string): Promise<boolean> {
     const windowStart = new Date(Date.now() - 15 * 60 * 1000);
 
-    const failedAttempts = await this.securityEventsService.getFailedLoginAttempts(
-      ipAddress,
-      0.25, // 15 minutes
-    );
+    const failedAttempts =
+      await this.securityEventsService.getFailedLoginAttempts(
+        ipAddress,
+        0.25, // 15 minutes
+      );
 
     if (failedAttempts >= this.BRUTE_FORCE_THRESHOLD) {
       await this.recordThreat({
@@ -238,7 +242,8 @@ export class ThreatDetectionService {
 
     return {
       total: threats.length,
-      byCritical: threats.filter((t) => t.threatLevel === ThreatLevel.CRITICAL).length,
+      byCritical: threats.filter((t) => t.threatLevel === ThreatLevel.CRITICAL)
+        .length,
       byHigh: threats.filter((t) => t.threatLevel === ThreatLevel.HIGH).length,
       byType,
       blocked: threats.filter((t) => t.blocked).length,
@@ -369,7 +374,9 @@ export class ThreatDetectionService {
   private blockIp(ipAddress: string | undefined, durationMs: number): void {
     if (!ipAddress) return;
     this.blockedIps.set(ipAddress, Date.now() + durationMs);
-    this.logger.warn(`IP temporarily blocked: ${ipAddress} for ${durationMs / 1000}s`);
+    this.logger.warn(
+      `IP temporarily blocked: ${ipAddress} for ${durationMs / 1000}s`,
+    );
   }
 
   private extractIp(req: Request): string {
