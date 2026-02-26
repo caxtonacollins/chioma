@@ -90,3 +90,21 @@ body {
   font-family: var(--font-sans);
   @apply antialiased;
 }
+
+/* Leaflet Popup Styling */
+.property-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 1rem;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.property-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.property-popup .leaflet-popup-tip {
+  background: white;
+}

@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReviewsController } from './reviews.controller';
 import { ReviewsService } from './reviews.service';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { ReviewContext } from './review.entity';
 
 describe('ReviewsController', () => {
   let controller: ReviewsController;
@@ -31,8 +33,22 @@ describe('ReviewsController', () => {
   });
 
   it('should call create on service', async () => {
-    const dto = { reviewerId: 'a', revieweeId: 'b', rating: 5 };
-    (service.create as jest.Mock).mockResolvedValue(dto);
-    expect(await controller.createReview(dto, {})).toEqual(dto);
+    const dto: CreateReviewDto = {
+      revieweeId: 'b',
+      context: ReviewContext.LEASE,
+      rating: 5,
+    };
+    const req = { user: { id: 'a' } };
+    const created = { id: '1', ...dto, reviewerId: 'a' };
+    (service.create as jest.Mock).mockResolvedValue(created);
+    expect(await controller.createReview(dto, req)).toEqual(created);
+    expect(service.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        revieweeId: 'b',
+        context: ReviewContext.LEASE,
+        rating: 5,
+        reviewerId: 'a',
+      }),
+    );
   });
 });

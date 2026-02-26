@@ -17,6 +17,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { StellarModule } from './modules/stellar/stellar.module';
 import { DisputesModule } from './modules/disputes/disputes.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { HealthModule } from './health/health.module';
 import { PaymentModule } from './modules/payments/payment.module';
@@ -32,6 +33,10 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { StorageModule } from './modules/storage/storage.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
+import { DeveloperModule } from './modules/developer/developer.module';
+import { SearchModule } from './modules/search/search.module';
+import { JobQueueService } from './common/services/job-queue.service';
 
 @Module({
   imports: [
@@ -113,6 +118,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
     PropertiesModule,
     StellarModule,
     DisputesModule,
+    MonitoringModule,
     HealthModule,
     PaymentModule,
     NotificationsModule,
@@ -120,6 +126,9 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
     SecurityModule,
     StorageModule,
     ReviewsModule,
+    FeedbackModule,
+    DeveloperModule,
+    SearchModule,
     // Maintenance module
     require('./modules/maintenance/maintenance.module').MaintenanceModule,
     // KYC module
@@ -128,6 +137,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
   controllers: [AppController],
   providers: [
     AppService,
+    JobQueueService,
     {
       provide: 'APP_PIPE',
       useClass: ValidationPipe,
