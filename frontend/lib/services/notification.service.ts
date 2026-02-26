@@ -9,9 +9,11 @@ import type { Notification, NotificationFilters } from '@/types/notification';
 class NotificationService {
   private readonly baseEndpoint = '/notifications';
 
-  async getNotifications(filters?: NotificationFilters): Promise<Notification[]> {
+  async getNotifications(
+    filters?: NotificationFilters,
+  ): Promise<Notification[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (filters?.isRead !== undefined) {
       queryParams.append('isRead', String(filters.isRead));
     }
@@ -26,7 +28,9 @@ class NotificationService {
     }
 
     const query = queryParams.toString();
-    const endpoint = query ? `${this.baseEndpoint}?${query}` : this.baseEndpoint;
+    const endpoint = query
+      ? `${this.baseEndpoint}?${query}`
+      : this.baseEndpoint;
 
     const response = await apiClient.get<Notification[]>(endpoint);
     return response.data;
@@ -34,7 +38,7 @@ class NotificationService {
 
   async getUnreadCount(): Promise<number> {
     const response = await apiClient.get<{ count: number }>(
-      `${this.baseEndpoint}/unread/count`
+      `${this.baseEndpoint}/unread/count`,
     );
     return response.data.count;
   }
@@ -57,3 +61,4 @@ class NotificationService {
 }
 
 export const notificationService = new NotificationService();
+

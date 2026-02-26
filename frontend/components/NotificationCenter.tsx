@@ -53,8 +53,8 @@ export default function NotificationCenter() {
       await notificationService.markAsRead(notificationId);
       setNotifications((prev: Notification[]) =>
         prev.map((n: Notification) =>
-          n.id === notificationId ? { ...n, isRead: true } : n
-        )
+          n.id === notificationId ? { ...n, isRead: true } : n,
+        ),
       );
       setUnreadCount((prev: number) => Math.max(0, prev - 1));
     } catch {
@@ -66,7 +66,7 @@ export default function NotificationCenter() {
     try {
       await notificationService.markAllAsRead();
       setNotifications((prev: Notification[]) =>
-        prev.map((n: Notification) => ({ ...n, isRead: true }))
+        prev.map((n: Notification) => ({ ...n, isRead: true })),
       );
       setUnreadCount(0);
     } catch {
@@ -78,7 +78,7 @@ export default function NotificationCenter() {
     try {
       await notificationService.deleteNotification(notificationId);
       setNotifications((prev: Notification[]) =>
-        prev.filter((n: Notification) => n.id !== notificationId)
+        prev.filter((n: Notification) => n.id !== notificationId),
       );
     } catch {
       // Silently fail - delete is not critical
@@ -222,7 +222,9 @@ export default function NotificationCenter() {
                             </span>
                             {!notification.isRead && (
                               <button
-                                onClick={() => handleMarkAsRead(notification.id)}
+                                onClick={() =>
+                                  handleMarkAsRead(notification.id)
+                                }
                                 className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                               >
                                 Mark as read
@@ -263,3 +265,4 @@ export default function NotificationCenter() {
     </div>
   );
 }
+

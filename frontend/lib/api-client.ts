@@ -37,7 +37,7 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    config: RequestConfig = {}
+    config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
     const {
       method = 'GET',
@@ -76,7 +76,8 @@ class ApiClient {
 
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          errorData.message ||
+            `HTTP ${response.status}: ${response.statusText}`,
         );
       }
 
@@ -98,14 +99,17 @@ class ApiClient {
   }
 
   // HTTP Methods
-  async get<T>(endpoint: string, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async get<T>(
+    endpoint: string,
+    config?: RequestConfig,
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'GET' });
   }
 
   async post<T>(
     endpoint: string,
     body?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'POST', body });
   }
@@ -113,7 +117,7 @@ class ApiClient {
   async put<T>(
     endpoint: string,
     body?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'PUT', body });
   }
@@ -121,14 +125,18 @@ class ApiClient {
   async patch<T>(
     endpoint: string,
     body?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'PATCH', body });
   }
 
-  async delete<T>(endpoint: string, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async delete<T>(
+    endpoint: string,
+    config?: RequestConfig,
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'DELETE' });
   }
 }
 
 export const apiClient = new ApiClient();
+
