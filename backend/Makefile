@@ -15,6 +15,9 @@ NC := \033[0m # No Color
 help: ## Display this help message
 	@echo "$(BLUE)Backend CI/CD Validation Makefile$(NC)"
 	@echo ""
+	@echo "$(YELLOW)Note: E2E tests require PostgreSQL and environment variables.$(NC)"
+	@echo "$(YELLOW)For GitHub Actions setup, see GITHUB_SECRETS.md$(NC)"
+	@echo ""
 	@awk 'BEGIN {FS = ":.*##"; printf "Usage:\n  make $(GREEN)<target>$(NC)\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2 } /^##@/ { printf "\n$(YELLOW)%s$(NC)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Setup
@@ -69,6 +72,7 @@ test-cov: ## Run tests with coverage report
 test-e2e: ## Run end-to-end tests (requires PostgreSQL)
 	@echo "$(BLUE)Running E2E tests...$(NC)"
 	@echo "$(YELLOW)Note: Ensure PostgreSQL is running and environment variables are set$(NC)"
+	@echo "$(YELLOW)You can start services with: docker-compose up -d$(NC)"
 	pnpm run test:e2e --forceExit
 	@echo "$(GREEN)✓ E2E tests passed$(NC)"
 
