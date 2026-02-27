@@ -27,7 +27,12 @@
     "migration:revert": "npm run typeorm migration:revert -- -d src/database/data-source.ts",
     "seed:currencies": "ts-node src/database/seeds/seed-currencies.ts",
     "seed:admin": "ts-node src/commands/index.ts admin",
-    "seed:admin:prod": "NODE_ENV=production ts-node src/commands/index.ts admin --force"
+    "seed:admin:prod": "NODE_ENV=production ts-node src/commands/index.ts admin --force",
+    "seed:agent": "ts-node src/commands/index.ts agent",
+    "seed:agent:prod": "NODE_ENV=production ts-node src/commands/index.ts agent --force",
+    "seed:tenant": "ts-node src/commands/index.ts tenant",
+    "seed:tenant:prod": "NODE_ENV=production ts-node src/commands/index.ts tenant --force",
+    "seed:all": "pnpm run seed:admin && pnpm run seed:agent && pnpm run seed:tenant"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",

@@ -28,6 +28,8 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setValue,
+    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
@@ -151,6 +153,53 @@ export default function LoginPage() {
           </div>
 
           <WalletConnectButton className="mb-6" />
+
+          {/* Demo Credentials - Development Only */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mb-6 p-4 rounded-xl bg-white/10 border border-white/20">
+              <p className="text-xs font-medium text-white/60 mb-3 text-center">
+                DEMO CREDENTIALS (Development Only)
+              </p>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-white/70">Admin:</span>
+                  <button
+                    onClick={() => {
+                      setValue('email', 'admin@chioma.local');
+                      setValue('password', 'QwW??H<EauRx6EyB>wm_');
+                    }}
+                    className="text-white/90 hover:text-white font-mono bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition-colors"
+                  >
+                    admin@chioma.local
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-white/70">Agent:</span>
+                  <button
+                    onClick={() => {
+                      setValue('email', 'agent@chioma.local');
+                      setValue('password', 'nWkW~HWN6S*-6o!??kHg');
+                    }}
+                    className="text-white/90 hover:text-white font-mono bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition-colors"
+                  >
+                    agent@chioma.local
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-white/70">Tenant:</span>
+                  <button
+                    onClick={() => {
+                      setValue('email', 'tenant@chioma.local');
+                      setValue('password', '8T<}2QXRm(?rwyJ4Pq3/');
+                    }}
+                    className="text-white/90 hover:text-white font-mono bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition-colors"
+                  >
+                    tenant@chioma.local
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <p className="text-center text-white/60 text-sm mt-2">
             Don&apos;t have an account?{' '}
