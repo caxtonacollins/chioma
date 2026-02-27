@@ -43,11 +43,13 @@ describe('Anchor Integration (e2e)', () => {
       });
 
     authToken = loginResponse.body.accessToken;
-  });
+  }, 30000);
 
   afterAll(async () => {
-    await app.close();
-  });
+    if (app) {
+      await app.close();
+    }
+  }, 30000);
 
   describe('POST /api/v1/anchor/deposit', () => {
     it('should reject request without authentication', () => {

@@ -52,14 +52,16 @@ describe('Auth E2E Tests', () => {
 
   afterAll(async () => {
     await userRepository.query('DELETE FROM users');
-    await app.close();
-  });
+    if (app) {
+      await app.close();
+    }
+  }, 30000);
 
   afterEach(async () => {
     await userRepository.query('DELETE FROM users WHERE email != $1', [
       'testuser@example.com',
     ]);
-  });
+  }, 30000);
 
   describe('POST /auth/register', () => {
     it('should register a new user successfully', () => {

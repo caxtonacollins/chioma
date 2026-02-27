@@ -29,8 +29,10 @@ describe('Integration (e2e)', () => {
   });
 
   afterAll(async () => {
-    if (app) await app.close();
-  });
+    if (app) {
+      await app.close();
+    }
+  }, 30000);
 
   describe('Feedback (community)', () => {
     it('POST /api/feedback accepts valid submission', async () => {

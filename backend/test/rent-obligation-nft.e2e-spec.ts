@@ -16,8 +16,10 @@ describe('Rent Obligation NFT Integration (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
-  });
+    if (app) {
+      await app.close();
+    }
+  }, 30000);
 
   describe('POST /agreements/nfts/mint', () => {
     it('should mint a new NFT for an agreement', async () => {

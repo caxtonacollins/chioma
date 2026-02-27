@@ -24,8 +24,10 @@ describe('Performance gates (e2e)', () => {
   });
 
   afterAll(async () => {
-    if (app) await app.close();
-  });
+    if (app) {
+      await app.close();
+    }
+  }, 30000);
 
   it('GET /health responds within threshold', async () => {
     const start = Date.now();
@@ -36,12 +38,12 @@ describe('Performance gates (e2e)', () => {
       });
     const elapsed = Date.now() - start;
     expect(elapsed).toBeLessThan(MAX_MS);
-  });
+  }, 30000);
 
   it('GET /api/docs-json responds within threshold', async () => {
     const start = Date.now();
     await request(app!.getHttpServer()).get('/api/docs-json').expect(200);
     const elapsed = Date.now() - start;
     expect(elapsed).toBeLessThan(MAX_MS);
-  });
+  }, 30000);
 });

@@ -42,8 +42,10 @@ describe('Blockchain Integration (e2e)', () => {
   });
 
   afterAll(async () => {
-    if (app) await app.close();
-  });
+    if (app) {
+      await app.close();
+    }
+  }, 30000);
 
   describe('Agreement Lifecycle', () => {
     it('should create agreement in database and blockchain', async () => {

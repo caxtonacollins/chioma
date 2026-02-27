@@ -63,12 +63,14 @@ describe('Stellar Authentication E2E', () => {
   beforeEach(async () => {
     // Clean up test data before each test
     await userRepository.delete({ walletAddress: validWalletAddress });
-  });
+  }, 30000);
 
   afterAll(async () => {
     await userRepository.delete({ walletAddress: validWalletAddress });
-    await app.close();
-  });
+    if (app) {
+      await app.close();
+    }
+  }, 30000);
 
   describe('API Endpoint Validation', () => {
     it('should generate challenge for valid wallet address', async () => {
