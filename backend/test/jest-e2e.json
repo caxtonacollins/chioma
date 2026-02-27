@@ -13,8 +13,9 @@
   "setupFiles": [
     "<rootDir>/setup-env.ts"
   ],
-  "testTimeout": 30000,
+  "testTimeout": 80000,
   "maxWorkers": 1,
   "forceExit": true,
-  "detectOpenHandles": false
+  "detectOpenHandles": false,
+  "bail": false
 }

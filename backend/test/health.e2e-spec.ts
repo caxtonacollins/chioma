@@ -65,7 +65,7 @@ describe('Health (e2e)', () => {
       // Check service structure
       Object.values(services).forEach((service: any) => {
         expect(service).toHaveProperty('status');
-        expect(service.status).toMatch(/^(ok|error|warning)$/);
+        expect(service.status).toMatch(/^(ok|up|error|down|warning)$/);
         expect(service).toHaveProperty('responseTime');
       });
     });

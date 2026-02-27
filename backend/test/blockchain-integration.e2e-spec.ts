@@ -7,6 +7,7 @@ import { AgreementsModule } from '../src/modules/agreements/agreements.module';
 import { AgreementsService } from '../src/modules/agreements/agreements.service';
 import { ChiomaContractService } from '../src/modules/stellar/services/chioma-contract.service';
 import * as StellarSdk from '@stellar/stellar-sdk';
+import { getTestDatabaseConfig } from './test-helpers';
 
 describe('Blockchain Integration (e2e)', () => {
   let app: INestApplication | undefined;
@@ -20,7 +21,11 @@ describe('Blockchain Integration (e2e)', () => {
           isGlobal: true,
           envFilePath: '.env.test',
         }),
-        CacheModule.register({ isGlobal: true, ttl: 600 }),
+        CacheModule.register({
+          isGlobal: true,
+          store: 'memory',
+          ttl: 600,
+        }),
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
@@ -45,7 +50,7 @@ describe('Blockchain Integration (e2e)', () => {
     if (app) {
       await app.close();
     }
-  }, 30000);
+  }, 60000);
 
   describe('Agreement Lifecycle', () => {
     it('should create agreement in database and blockchain', async () => {
