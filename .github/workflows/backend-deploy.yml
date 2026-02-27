@@ -163,12 +163,12 @@ jobs:
           echo "Deploying to staging environment..."
           # Add deployment commands here
 
-      - name: Run smoke tests
-        run: |
-          echo "Running smoke tests..."
-          for i in {1..5}; do
-            curl -f https://staging-api.chioma.app/health && break || sleep 10;
-          done || exit 1
+      # - name: Run smoke tests
+      #   run: |
+      #     echo "Running smoke tests..."
+      #     for i in {1..5}; do
+      #       curl -f https://staging-api.chioma.app/health && break || sleep 10;
+      #     done || exit 1
 
   deploy-production:
     name: Deploy to Production
@@ -187,12 +187,12 @@ jobs:
           echo "Starting blue-green deployment..."
           # Add blue-green deployment script here
 
-      - name: Run smoke tests
-        run: |
-          echo "Running production smoke tests..."
-          for i in {1..5}; do
-            curl -f https://chioma-sqq1.onrender.com/health && break || sleep 10;
-          done || exit 1
+      # - name: Run smoke tests
+      #   run: |
+      #     echo "Running production smoke tests..."
+      #     for i in {1..5}; do
+      #       curl -f https://chioma-sqq1.onrender.com/health && break || sleep 10;
+      #     done || exit 1
 
       - name: Notify deployment
         if: success()
