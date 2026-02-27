@@ -7,6 +7,7 @@ import { AgreementsService } from '../agreements/agreements.service';
 export class ReviewPromptService {
   constructor(
     private readonly reviewsService: ReviewsService,
+    @Inject(forwardRef(() => MaintenanceService))
     private readonly maintenanceService: MaintenanceService,
     @Inject(forwardRef(() => AgreementsService))
     private readonly agreementsService: AgreementsService,
