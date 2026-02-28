@@ -11,9 +11,6 @@ import { getTestDatabaseConfig } from './test-helpers';
 
 describe('Blockchain Integration (e2e)', () => {
   let app: INestApplication | undefined;
-describe.skip('Blockchain Integration (e2e)', () => {
-  // Skipped: Requires PostgreSQL database and full module dependencies
-  let app: INestApplication;
   let _agreementsService: AgreementsService;
   let _chiomaContract: ChiomaContractService;
 

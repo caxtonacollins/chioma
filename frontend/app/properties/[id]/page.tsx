@@ -306,7 +306,6 @@ export default async function PropertyDetailsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
-    params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const property = await getProperty(id);

@@ -93,9 +93,6 @@ describe('Integration (e2e)', () => {
   describe('Public API surface', () => {
     it('GET /api/properties returns 200 with pagination shape', async () => {
       const res = await request(app!.getHttpServer())
-    it.skip('GET /api/properties returns 200 with pagination shape', async () => {
-      // Skipped: requires database schema to be set up
-      const res = await request(app.getHttpServer())
         .get('/api/properties')
         .expect(200);
       expect(res.body).toHaveProperty('data');

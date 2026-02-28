@@ -82,10 +82,6 @@ build: install
 		fi; \
 		node -e "const v=process.versions.node.split(\".\"); const major=Number(v[0]), minor=Number(v[1]||0); if(major>20 || (major===20 && minor>=9)) process.exit(0); console.error(\"❌ Next.js requires Node.js >= 20.9.0. Current: \", process.version); console.error(\"   Run: nvm use 20   (or install Node 20)\"); process.exit(1);"; \
 		exec node ./node_modules/next/dist/bin/next build'
-# Create production build (mirrors build job)
-build: install
-	@echo "🏗️  Creating production build..."
-	pnpm run build
 	@echo "✅ Build completed successfully"
 
 # Clean dependencies and build artifacts
