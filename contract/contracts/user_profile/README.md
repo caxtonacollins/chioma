@@ -53,14 +53,14 @@ cargo test -p user-profile -- --nocapture
 
 ## Gas Costs
 
-| Operation | Estimated Gas |
-|-----------|--------------|
-| initialize | ~30,000 |
-| create_profile | ~50,000 |
+| Operation      | Estimated Gas  |
+| -------------- | -------------- |
+| initialize     | ~30,000        |
+| create_profile | ~50,000        |
 | update_profile | ~20,000-25,000 |
-| get_profile | ~5,000 |
-| verify_profile | ~15,000 |
-| delete_profile | ~10,000 |
+| get_profile    | ~5,000         |
+| verify_profile | ~15,000        |
+| delete_profile | ~10,000        |
 
 ## Security
 
