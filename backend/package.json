@@ -104,7 +104,6 @@
     "@nestjs/testing": "^11.0.1",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
-    "@types/bcrypt": "^5.0.2",
     "@types/csurf": "^1.11.5",
     "@types/express": "^5.0.0",
     "@types/helmet": "^4.0.0",
@@ -150,7 +149,9 @@
     "moduleNameMapper": {
       "^bcryptjs$": "<rootDir>/test/mocks/bcryptjs.ts",
       "^@nestjs/passport$": "<rootDir>/test/mocks/nestjs-passport.ts",
-      "^@nestjs/terminus$": "<rootDir>/test/mocks/nestjs-terminus.ts"
+      "^@nestjs/terminus$": "<rootDir>/test/mocks/nestjs-terminus.ts",
+      "^passport-jwt$": "<rootDir>/test/mocks/nestjs-passport.ts",
+      "^passport$": "<rootDir>/test/mocks/nestjs-passport.ts"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
