@@ -327,12 +327,11 @@ describe.skip('Stellar Authentication E2E', () => {
       // Make multiple requests quickly to trigger rate limiting
       const requests = Array(6)
         .fill(null)
-        .map(
-          (_, index) =>
-            request(app.getHttpServer())
-              .post('/auth/stellar/challenge')
-              .send({ walletAddress: `${validWalletAddress}_${index}` }) // Use different addresses to avoid duplicate challenge errors
-              .then((res) => res),
+        .map((_, index) =>
+          request(app.getHttpServer())
+            .post('/auth/stellar/challenge')
+            .send({ walletAddress: `${validWalletAddress}_${index}` }) // Use different addresses to avoid duplicate challenge errors
+            .then((res) => res),
         );
 
       const responses = await Promise.all(requests);

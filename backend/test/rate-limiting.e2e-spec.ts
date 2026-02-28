@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
+import { Response } from 'supertest';
 import { AppModule } from '../src/app.module';
 import { RateLimitService } from '../src/modules/rate-limiting';
 
@@ -45,7 +46,7 @@ describe('Rate Limiting E2E', () => {
 
   describe('Basic Rate Limiting', () => {
     it('should enforce rate limits on public endpoints', async () => {
-      const responses = [];
+      const responses: Response[] = [];
 
       for (let i = 0; i < 150; i++) {
         const response = await request(app.getHttpServer()).get('/health');
@@ -72,13 +73,15 @@ describe('Rate Limiting E2E', () => {
 
   describe('User Tier-Based Limiting', () => {
     it('should apply different limits based on user tier', async () => {
-      const publicResponses = [];
+      const publicResponses: Response[] = [];
       for (let i = 0; i < 50; i++) {
         const response = await request(app.getHttpServer()).get('/health');
         publicResponses.push(response);
       }
 
-      const publicBlocked = publicResponses.filter((r) => r.status === 429).length;
+      const publicBlocked = publicResponses.filter(
+        (r) => r.status === 429,
+      ).length;
       expect(publicBlocked).toBe(0);
     });
   });
@@ -116,7 +119,7 @@ describe('Rate Limiting E2E', () => {
 
   describe('Category-Based Limiting', () => {
     it('should apply different limits to different endpoint categories', async () => {
-      const authResponses = [];
+      const authResponses: Response[] = [];
       for (let i = 0; i < 10; i++) {
         const response = await request(app.getHttpServer())
           .post('/auth/login')
@@ -150,7 +153,7 @@ describe('Rate Limiting E2E', () => {
 
   describe('IP-based Rate Limiting', () => {
     it('should rate limit based on IP for unauthenticated requests', async () => {
-      const responses = [];
+      const responses: Response[] = [];
 
       for (let i = 0; i < 150; i++) {
         const response = await request(app.getHttpServer())
