@@ -73,6 +73,21 @@ describe('Blockchain Integration (e2e)', () => {
       };
 
       // This test requires testnet setup and funded accounts
+      // const agreementDto = {
+      //   propertyId: 'test-property',
+      //   landlordId: 'test-landlord',
+      //   tenantId: 'test-tenant',
+      //   landlordStellarPubKey: landlordKeypair.publicKey(),
+      //   tenantStellarPubKey: tenantKeypair.publicKey(),
+      //   monthlyRent: '1000',
+      //   securityDeposit: '2000',
+      //   agentCommissionRate: 10,
+      //   startDate: new Date().toISOString(),
+      //   endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      //   termsAndConditions: 'Test terms',
+      //   paymentToken: 'NATIVE',
+      // };
+
       // const agreement = await agreementsService.create(agreementDto);
       // expect(agreement.blockchainAgreementId).toBeDefined();
       // expect(agreement.transactionHash).toBeDefined();

@@ -331,7 +331,8 @@ describe.skip('Stellar Authentication E2E', () => {
           (_, index) =>
             request(app.getHttpServer())
               .post('/auth/stellar/challenge')
-              .send({ walletAddress: `${validWalletAddress}_${index}` }), // Use different addresses to avoid duplicate challenge errors
+              .send({ walletAddress: `${validWalletAddress}_${index}` }) // Use different addresses to avoid duplicate challenge errors
+              .then((res) => res),
         );
 
       const responses = await Promise.all(requests);
@@ -354,7 +355,8 @@ describe.skip('Stellar Authentication E2E', () => {
               walletAddress: `${validWalletAddress}_${index}`,
               signature: 'test-signature',
               challenge: 'test-challenge',
-            }),
+            })
+            .then((res) => res),
         );
 
       const responses = await Promise.all(requests);
@@ -401,7 +403,8 @@ describe.skip('Stellar Authentication E2E', () => {
         .map(() =>
           request(app.getHttpServer())
             .post('/auth/stellar/challenge')
-            .send({ walletAddress: Keypair.random().publicKey() }),
+            .send({ walletAddress: Keypair.random().publicKey() })
+            .then((res) => res),
         );
 
       const responses = await Promise.all(concurrentRequests);
