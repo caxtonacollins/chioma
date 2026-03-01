@@ -21,28 +21,24 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!secret) {
       throw new Error('JWT_SECRET is required');
     }
-    super(
-      {
-        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: secret,
-        passReqToCallback: false,
-      },
-      async (payload: JwtPayload, done) => {
-        if (payload.type !== 'access') {
-          return done(new UnauthorizedException('Invalid token type'), false);
-        }
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: secret,
+      passReqToCallback: false,
+    });
+  }
 
-        const user = await this.authService.validateUserById(payload.sub);
+  async validate(payload: JwtPayload) {
+    if (payload.type !== 'access') {
+      throw new UnauthorizedException('Invalid token type');
+    }
 
-        if (!user) {
-          return done(
-            new UnauthorizedException('User not found or inactive'),
-            false,
-          );
-        }
+    const user = await this.authService.validateUserById(payload.sub);
 
-        return done(null, user);
-      },
-    );
+    if (!user) {
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    return user;
   }
 }

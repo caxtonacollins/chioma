@@ -89,6 +89,19 @@ import { RateLimitHeadersMiddleware } from './modules/rate-limiting/middleware/r
       useFactory: () => {
         const isTest = process.env.NODE_ENV === 'test';
         const openapiGenerate = process.env.OPENAPI_GENERATE === 'true';
+
+        // For OpenAPI generation, return a minimal config that doesn't connect to DB
+        if (openapiGenerate) {
+          return {
+            type: 'sqlite',
+            database: ':memory:',
+            namingStrategy: new SnakeNamingStrategy(),
+            entities: [], // Don't load entities for OpenAPI generation
+            synchronize: false,
+            logging: false,
+          };
+        }
+
         if (isTest && process.env.DB_TYPE === 'sqlite') {
           return {
             type: 'sqlite',
@@ -136,7 +149,7 @@ import { RateLimitHeadersMiddleware } from './modules/rate-limiting/middleware/r
     FeedbackModule,
     DeveloperModule,
     SearchModule,
-    RateLimitingModule,
+    ...(process.env.OPENAPI_GENERATE !== 'true' ? [RateLimitingModule] : []),
     // Maintenance module
     require('./modules/maintenance/maintenance.module').MaintenanceModule,
     // KYC module
